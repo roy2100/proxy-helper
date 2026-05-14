@@ -1,7 +1,17 @@
 import SwiftUI
 
+final class AppDelegate: NSObject, NSApplicationDelegate {
+    func applicationWillTerminate(_ notification: Notification) {
+        MainActor.assumeIsolated {
+            KernelManager.shared.stopImmediately()
+            SystemProxyManager.shared.disable()
+        }
+    }
+}
+
 @main
 struct ProxyHelperApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @State private var appState = AppState()
 
     var body: some Scene {

@@ -9,9 +9,37 @@ final class KernelManager {
     private var restartCount = 0
     private let maxRestarts = 3
 
-    private init() {}
+    private static let pidKey = "lastMihomoProxyPID"
+
+    private init() {
+        killSavedPID()
+    }
 
     func start(mihomoPath: String, configPath: String) throws {
+        restartCount = 0
+        try launch(mihomoPath: mihomoPath, configPath: configPath)
+    }
+
+    func stop() {
+        guard let p = process else { return }
+        process = nil
+        clearSavedPID()
+        p.terminate()
+        let pid = p.processIdentifier
+        Task {
+            try? await Task.sleep(for: .seconds(2))
+            kill(pid, SIGKILL)
+        }
+    }
+
+    func stopImmediately() {
+        guard let p = process else { return }
+        process = nil
+        kill(p.processIdentifier, SIGKILL)
+        clearSavedPID()
+    }
+
+    private func launch(mihomoPath: String, configPath: String) throws {
         guard !mihomoPath.isEmpty else {
             throw KernelError.binaryNotFound
         }
@@ -20,6 +48,18 @@ final class KernelManager {
         }
         guard FileManager.default.fileExists(atPath: configPath) else {
             throw KernelError.configNotFound(path: configPath)
+        }
+
+        // kill 上次保存的 PID（处理 crash 遗留的孤儿进程）
+        killSavedPID()
+
+        // 同步终止当前持有的进程
+        if let existing = process {
+            existing.terminate()
+            if existing.isRunning {
+                kill(existing.processIdentifier, SIGKILL)
+            }
+            process = nil
         }
 
         let p = Process()
@@ -32,12 +72,16 @@ final class KernelManager {
         p.standardError = pipe
         self.logPipe = pipe
 
-        // 捕获不跨 actor 边界的值
         p.terminationHandler = { [weak self] proc in
+            let terminatedPID = proc.processIdentifier
             let reason = proc.terminationReason
             let status = proc.terminationStatus
             Task { @MainActor [weak self] in
-                self?.handleTermination(
+                guard let self else { return }
+                guard self.process?.processIdentifier == terminatedPID else { return }
+                self.process = nil
+                self.clearSavedPID()
+                self.handleTermination(
                     reason: reason,
                     status: status,
                     mihomoPath: mihomoPath,
@@ -48,18 +92,7 @@ final class KernelManager {
 
         try p.run()
         self.process = p
-        restartCount = 0
-    }
-
-    func stop() {
-        guard let p = process, p.isRunning else { return }
-        p.terminate()
-        let pid = p.processIdentifier
-        Task {
-            try? await Task.sleep(for: .seconds(2))
-            kill(pid, SIGKILL)
-        }
-        process = nil
+        savePID(p.processIdentifier)
     }
 
     private func handleTermination(
@@ -71,8 +104,25 @@ final class KernelManager {
         guard reason == .exit && status != 0 else { return }
         if restartCount < maxRestarts {
             restartCount += 1
-            try? start(mihomoPath: mihomoPath, configPath: configPath)
+            try? launch(mihomoPath: mihomoPath, configPath: configPath)
         }
+    }
+
+    // MARK: - PID 持久化
+
+    private func savePID(_ pid: Int32) {
+        UserDefaults.standard.set(Int(pid), forKey: Self.pidKey)
+    }
+
+    private func clearSavedPID() {
+        UserDefaults.standard.removeObject(forKey: Self.pidKey)
+    }
+
+    private func killSavedPID() {
+        let pid = UserDefaults.standard.integer(forKey: Self.pidKey)
+        guard pid != 0 else { return }
+        kill(Int32(pid), SIGKILL)
+        clearSavedPID()
     }
 }
 

@@ -41,8 +41,18 @@ struct MenuView: View {
 
         Divider()
 
-        Button("设置...") { openWindow(id: "settings") }
-            .keyboardShortcut(",", modifiers: .command)
+        Button("打开配置文件夹") {
+            let path = state.configFolderPath
+            guard !path.isEmpty else { return }
+            NSWorkspace.shared.open(URL(fileURLWithPath: path))
+        }
+        .disabled(state.configFolderPath.isEmpty)
+
+        Button("设置...") {
+            openWindow(id: "settings")
+            NSApp.activate(ignoringOtherApps: true)
+        }
+        .keyboardShortcut(",", modifiers: .command)
 
         Button("退出") { NSApplication.shared.terminate(nil) }
             .keyboardShortcut("q", modifiers: .command)
