@@ -82,7 +82,7 @@ struct MenuView: View {
             let base = URL(string: cfg.baseURL) ?? URL(string: "http://127.0.0.1:9090")!
             let host = base.host ?? "127.0.0.1"
             let port = base.port ?? 9090
-            var fragment = "/setup?hostname=\(host)&port=\(port)&protocol=http"
+            var fragment = "/setup?hostname=\(host)&port=\(port)&http=1"
             if !cfg.secret.isEmpty { fragment += "&secret=\(cfg.secret)" }
             if let url = URL(string: "https://board.zash.run.place/#\(fragment)") {
                 NSWorkspace.shared.open(url)
