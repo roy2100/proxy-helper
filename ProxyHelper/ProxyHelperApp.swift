@@ -9,7 +9,7 @@ struct ProxyHelperApp: App {
             MenuView()
                 .environment(appState)
         } label: {
-            Image(systemName: appState.isRunning ? "circle.fill" : "circle")
+            Image(systemName: appState.isRunning ? "p.square.fill" : "p.square")
         }
         .menuBarExtraStyle(.menu)
 
