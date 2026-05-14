@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: macos-15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and test
+        run: |
+          xcodebuild test \
+            -project ProxyHelper.xcodeproj \
+            -scheme ProxyHelper \
+            -destination 'platform=macOS,arch=arm64' \
+            MACOSX_DEPLOYMENT_TARGET=15.0 \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY=""

@@ -1,0 +1,41 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: macos-15
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Archive
+        run: |
+          xcodebuild archive \
+            -project ProxyHelper.xcodeproj \
+            -scheme ProxyHelper \
+            -configuration Release \
+            -archivePath "${{ github.workspace }}/build/ProxyHelper.xcarchive" \
+            MACOSX_DEPLOYMENT_TARGET=15.0 \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY=""
+
+      - name: Package
+        run: |
+          cp -r build/ProxyHelper.xcarchive/Products/Applications/ProxyHelper.app build/ProxyHelper.app
+          cd build
+          zip -r --symlinks "ProxyHelper-${{ github.ref_name }}.zip" ProxyHelper.app
+
+      - name: Create release
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            --title "ProxyHelper ${{ github.ref_name }}" \
+            --generate-notes \
+            "build/ProxyHelper-${{ github.ref_name }}.zip"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

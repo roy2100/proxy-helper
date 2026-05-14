@@ -3,3 +3,7 @@
 # Xcode 用户本地状态，不应提交
 *.xcuserstate
 xcuserdata/
+
+# 构建产物
+build/
+DerivedData/
