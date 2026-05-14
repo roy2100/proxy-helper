@@ -16,6 +16,8 @@ jobs:
 
       - name: Archive
         run: |
+          MARKETING_VERSION="${{ github.ref_name }}"
+          MARKETING_VERSION="${MARKETING_VERSION#v}"
           xcodebuild archive \
             -project ProxyHelper.xcodeproj \
             -scheme ProxyHelper \
@@ -24,7 +26,8 @@ jobs:
             MACOSX_DEPLOYMENT_TARGET=15.0 \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_ALLOWED=NO
+            CODE_SIGNING_ALLOWED=NO \
+            MARKETING_VERSION="$MARKETING_VERSION"
 
       - name: Package
         run: |

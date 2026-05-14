@@ -4,10 +4,21 @@ struct MenuView: View {
     @Environment(AppState.self) var state
     @Environment(\.openWindow) var openWindow
 
+    private var appVersion: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+    }
+
     var body: some View {
         // 状态行
         Label {
-            Text(state.isStarting ? "启动中..." : state.isRunning ? "运行中" : "已停止")
+            HStack(spacing: 6) {
+                Text(state.isStarting ? "启动中..." : state.isRunning ? "运行中" : "已停止")
+                if !appVersion.isEmpty {
+                    Text("v\(appVersion)")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                }
+            }
         } icon: {
             if state.isStarting {
                 ProgressView().controlSize(.mini)
