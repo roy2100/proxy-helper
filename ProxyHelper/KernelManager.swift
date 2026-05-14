@@ -88,11 +88,11 @@ final class KernelManager {
 
         logReadTask?.cancel()
         let handle = pipe.fileHandleForReading
-        logReadTask = Task.detached { [weak self] in
+        logReadTask = Task { @MainActor [weak self] in
             do {
                 for try await line in handle.bytes.lines {
                     guard !Task.isCancelled else { break }
-                    await MainActor.run { self?.onLogLine?(line) }
+                    self?.onLogLine?(line)
                 }
             } catch {}
         }
