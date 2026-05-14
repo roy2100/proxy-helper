@@ -10,16 +10,12 @@ struct DashboardView: View {
         let host = base.host ?? "127.0.0.1"
         let port = base.port ?? 9090
 
-        var components = URLComponents(string: "http://board.zash.run.place/")!
-        var items: [URLQueryItem] = [
-            URLQueryItem(name: "hostname", value: host),
-            URLQueryItem(name: "port", value: "\(port)"),
-        ]
+        var fragment = "/setup?hostname=\(host)&port=\(port)"
         if !cfg.secret.isEmpty {
-            items.append(URLQueryItem(name: "secret", value: cfg.secret))
+            fragment += "&secret=\(cfg.secret)"
         }
-        components.queryItems = items
-        return components.url ?? URL(string: "http://board.zash.run.place/")!
+        return URL(string: "http://board.zash.run.place/#\(fragment)")
+            ?? URL(string: "http://board.zash.run.place/")!
     }
 
     var body: some View {
