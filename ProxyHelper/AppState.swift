@@ -5,6 +5,7 @@ import Observation
 @Observable
 final class AppState {
     var isRunning: Bool = false
+    var isStarting: Bool = false
     var systemProxyEnabled: Bool = false
     var uploadSpeed: String = "↑ 0 B/s"
     var downloadSpeed: String = "↓ 0 B/s"

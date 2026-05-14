@@ -36,7 +36,7 @@ struct MenuView: View {
             Button("启动") {
                 Task { await startKernel() }
             }
-            .disabled(state.activeConfigPath.isEmpty)
+            .disabled(state.activeConfigPath.isEmpty || state.isStarting)
         }
 
         Divider()
@@ -67,10 +67,14 @@ struct MenuView: View {
     var statusBlock: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 6) {
-                Circle()
-                    .fill(state.isRunning ? Color.green : Color.secondary)
-                    .frame(width: 8, height: 8)
-                Text(state.isRunning ? "运行中" : "已停止")
+                if state.isStarting {
+                    ProgressView().controlSize(.mini)
+                } else {
+                    Circle()
+                        .fill(state.isRunning ? Color.green : Color.secondary)
+                        .frame(width: 8, height: 8)
+                }
+                Text(state.isStarting ? "启动中..." : state.isRunning ? "运行中" : "已停止")
                     .font(.headline)
             }
 
@@ -107,6 +111,9 @@ struct MenuView: View {
     }
 
     func startKernel() async {
+        state.isStarting = true
+        state.errorMessage = nil
+        defer { state.isStarting = false }
         let appState = state
         KernelManager.shared.onUnexpectedStop = {
             appState.isRunning = false

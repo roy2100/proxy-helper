@@ -75,6 +75,9 @@ final class ConfigManager {
 
         try? await Task.sleep(for: .milliseconds(500))
 
+        appState.isStarting = true
+        defer { appState.isStarting = false }
+
         do {
             try KernelManager.shared.start(
                 mihomoPath: appState.effectiveMihomoPath,

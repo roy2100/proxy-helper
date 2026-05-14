@@ -4,7 +4,7 @@ struct MihomoAPI: Sendable {
     let baseURL: String
     let secret: String
 
-    func waitUntilReady(timeout: TimeInterval = 10) async -> Bool {
+    func waitUntilReady(timeout: TimeInterval = 60) async -> Bool {
         let deadline = Date().addingTimeInterval(timeout)
         while Date() < deadline {
             if await checkHealth() { return true }
