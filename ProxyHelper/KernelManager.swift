@@ -72,8 +72,8 @@ final class KernelManager {
 
         let p = Process()
         p.executableURL = URL(fileURLWithPath: mihomoPath)
-        p.arguments = ["-d", URL(fileURLWithPath: configPath)
-                                .deletingLastPathComponent().path]
+        let configDir = URL(fileURLWithPath: configPath).deletingLastPathComponent().path
+        p.arguments = ["-d", configDir, "-f", configPath]
 
         let pipe = Pipe()
         p.standardOutput = pipe
