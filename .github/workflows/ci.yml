@@ -21,4 +21,5 @@ jobs:
             -destination 'platform=macOS,arch=arm64' \
             MACOSX_DEPLOYMENT_TARGET=15.0 \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY=""
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_ALLOWED=NO
