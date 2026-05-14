@@ -96,7 +96,11 @@ struct SettingsView: View {
         let panel = NSOpenPanel()
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
-        if panel.runModal() == .OK { binding.wrappedValue = panel.url?.path ?? "" }
+        panel.begin { response in
+            if response == .OK {
+                binding.wrappedValue = panel.url?.path(percentEncoded: false) ?? ""
+            }
+        }
     }
 
     func pickFolder(binding: Binding<String>) {
@@ -105,6 +109,10 @@ struct SettingsView: View {
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
         panel.prompt = "选择文件夹"
-        if panel.runModal() == .OK { binding.wrappedValue = panel.url?.path ?? "" }
+        panel.begin { response in
+            if response == .OK {
+                binding.wrappedValue = panel.url?.path(percentEncoded: false) ?? ""
+            }
+        }
     }
 }

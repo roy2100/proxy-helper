@@ -17,10 +17,11 @@ struct MenuView: View {
                 Button {
                     Task { await switchTo(config) }
                 } label: {
-                    Label(
-                        config.name,
-                        systemImage: config.path == state.activeConfigPath ? "checkmark" : ""
-                    )
+                    if config.path == state.activeConfigPath {
+                        Label(config.name, systemImage: "checkmark")
+                    } else {
+                        Text(config.name)
+                    }
                 }
             }
         }
@@ -67,7 +68,7 @@ struct MenuView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
-                Text("HTTP 代理：127.0.0.1:\(state.httpPort)")
+                Text("HTTP 代理：127.0.0.1:\(String(state.httpPort))")
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
             }
