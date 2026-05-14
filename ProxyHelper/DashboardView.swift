@@ -14,8 +14,8 @@ struct DashboardView: View {
         if !cfg.secret.isEmpty {
             fragment += "&secret=\(cfg.secret)"
         }
-        return URL(string: "http://board.zash.run.place/#\(fragment)")
-            ?? URL(string: "http://board.zash.run.place/")!
+        return URL(string: "https://board.zash.run.place/#\(fragment)")
+            ?? URL(string: "https://board.zash.run.place/")!
     }
 
     var body: some View {
