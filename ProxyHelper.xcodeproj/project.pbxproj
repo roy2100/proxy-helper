@@ -16,7 +16,19 @@
 		7521A1B2C3D4E5F6A7B80046 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7521A1B2C3D4E5F6A7B80036 /* AppState.swift */; };
 		7521A1B2C3D4E5F6A7B80047 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7521A1B2C3D4E5F6A7B80037 /* SettingsView.swift */; };
 		7521A1B2C3D4E5F6A7B80048 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7521A1B2C3D4E5F6A7B80038 /* Assets.xcassets */; };
+		7521A1B2C3D4E5F6A7B8007D /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7521A1B2C3D4E5F6A7B8007C /* Utilities.swift */; };
+		7521A1B2C3D4E5F6A7B80077 /* ProxyHelperTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7521A1B2C3D4E5F6A7B80076 /* ProxyHelperTests.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		7521A1B2C3D4E5F6A7B8007B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7521A1B2C3D4E5F6A7B80000 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7521A1B2C3D4E5F6A7B80010;
+			remoteInfo = ProxyHelper;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		7521A1B2C3D4E5F6A7B80020 /* ProxyHelper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ProxyHelper.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -31,10 +43,20 @@
 		7521A1B2C3D4E5F6A7B80038 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		7521A1B2C3D4E5F6A7B80039 /* ProxyHelper.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ProxyHelper.entitlements; sourceTree = "<group>"; };
 		7521A1B2C3D4E5F6A7B8003A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		7521A1B2C3D4E5F6A7B8007C /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
+		7521A1B2C3D4E5F6A7B80076 /* ProxyHelperTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProxyHelperTests.swift; sourceTree = "<group>"; };
+		7521A1B2C3D4E5F6A7B80079 /* ProxyHelperTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ProxyHelperTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		7521A1B2C3D4E5F6A7B80019 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7521A1B2C3D4E5F6A7B80072 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -48,6 +70,7 @@
 			isa = PBXGroup;
 			children = (
 				7521A1B2C3D4E5F6A7B80004 /* ProxyHelper */,
+				7521A1B2C3D4E5F6A7B80078 /* ProxyHelperTests */,
 				7521A1B2C3D4E5F6A7B80003 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -56,6 +79,7 @@
 			isa = PBXGroup;
 			children = (
 				7521A1B2C3D4E5F6A7B80020 /* ProxyHelper.app */,
+				7521A1B2C3D4E5F6A7B80079 /* ProxyHelperTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -71,11 +95,20 @@
 				7521A1B2C3D4E5F6A7B80035 /* SystemProxyManager.swift */,
 				7521A1B2C3D4E5F6A7B80036 /* AppState.swift */,
 				7521A1B2C3D4E5F6A7B80037 /* SettingsView.swift */,
+				7521A1B2C3D4E5F6A7B8007C /* Utilities.swift */,
 				7521A1B2C3D4E5F6A7B80038 /* Assets.xcassets */,
 				7521A1B2C3D4E5F6A7B80039 /* ProxyHelper.entitlements */,
 				7521A1B2C3D4E5F6A7B8003A /* Info.plist */,
 			);
 			path = ProxyHelper;
+			sourceTree = "<group>";
+		};
+		7521A1B2C3D4E5F6A7B80078 /* ProxyHelperTests */ = {
+			isa = PBXGroup;
+			children = (
+				7521A1B2C3D4E5F6A7B80076 /* ProxyHelperTests.swift */,
+			);
+			path = ProxyHelperTests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -98,6 +131,23 @@
 			productReference = 7521A1B2C3D4E5F6A7B80020 /* ProxyHelper.app */;
 			productType = "com.apple.product-type.application";
 		};
+		7521A1B2C3D4E5F6A7B80070 /* ProxyHelperTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7521A1B2C3D4E5F6A7B80073 /* Build configuration list for PBXNativeTarget "ProxyHelperTests" */;
+			buildPhases = (
+				7521A1B2C3D4E5F6A7B80071 /* Sources */,
+				7521A1B2C3D4E5F6A7B80072 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				7521A1B2C3D4E5F6A7B8007A /* PBXTargetDependency */,
+			);
+			name = ProxyHelperTests;
+			productName = ProxyHelperTests;
+			productReference = 7521A1B2C3D4E5F6A7B80079 /* ProxyHelperTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -110,6 +160,10 @@
 				TargetAttributes = {
 					7521A1B2C3D4E5F6A7B80010 = {
 						CreatedOnToolsVersion = 16.0;
+					};
+					7521A1B2C3D4E5F6A7B80070 = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = 7521A1B2C3D4E5F6A7B80010;
 					};
 				};
 			};
@@ -127,6 +181,7 @@
 			projectRoot = "";
 			targets = (
 				7521A1B2C3D4E5F6A7B80010 /* ProxyHelper */,
+				7521A1B2C3D4E5F6A7B80070 /* ProxyHelperTests */,
 			);
 		};
 /* End PBXProject section */
@@ -155,10 +210,27 @@
 				7521A1B2C3D4E5F6A7B80045 /* SystemProxyManager.swift in Sources */,
 				7521A1B2C3D4E5F6A7B80046 /* AppState.swift in Sources */,
 				7521A1B2C3D4E5F6A7B80047 /* SettingsView.swift in Sources */,
+				7521A1B2C3D4E5F6A7B8007D /* Utilities.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7521A1B2C3D4E5F6A7B80071 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7521A1B2C3D4E5F6A7B80077 /* ProxyHelperTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		7521A1B2C3D4E5F6A7B8007A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 7521A1B2C3D4E5F6A7B80010 /* ProxyHelper */;
+			targetProxy = 7521A1B2C3D4E5F6A7B8007B /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		7521A1B2C3D4E5F6A7B80013 /* Debug */ = {
@@ -318,6 +390,40 @@
 			};
 			name = Release;
 		};
+		7521A1B2C3D4E5F6A7B80074 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 6AGGFD5SXS;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lielienan.ProxyHelperTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ProxyHelper.app/Contents/MacOS/ProxyHelper";
+			};
+			name = Debug;
+		};
+		7521A1B2C3D4E5F6A7B80075 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 6AGGFD5SXS;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lielienan.ProxyHelperTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ProxyHelper.app/Contents/MacOS/ProxyHelper";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -339,7 +445,17 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		7521A1B2C3D4E5F6A7B80073 /* Build configuration list for PBXNativeTarget "ProxyHelperTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7521A1B2C3D4E5F6A7B80074 /* Debug */,
+				7521A1B2C3D4E5F6A7B80075 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
+
 	};
 	rootObject = 7521A1B2C3D4E5F6A7B80000 /* Project object */;
 }
