@@ -18,6 +18,28 @@ macOS 菜单栏应用，控制本地 mihomo 内核的启动与停止，自动设
 
 ## 安装
 
+从 [Releases](../../releases) 下载最新的 `ProxyHelper-vX.X.X.zip`，解压后将 `ProxyHelper.app` 拖入 `/Applications`。
+
+### Gatekeeper 拦截处理
+
+由于安装包未经 Apple 公证，首次打开时 macOS 会提示"无法打开，因为 Apple 无法检查其是否包含恶意软件"。
+
+**方法一：在 Finder 中右键打开（推荐）**
+
+1. 在 Finder 中找到 `ProxyHelper.app`
+2. 按住 `Control` 键单击（或右键）→ **打开**
+3. 弹窗中点击 **打开** 确认
+
+此后即可正常双击启动，无需重复操作。
+
+**方法二：命令行移除隔离标记**
+
+```bash
+xattr -dr com.apple.quarantine /Applications/ProxyHelper.app
+```
+
+**从源码构建**
+
 1. 克隆仓库，用 Xcode 打开 `ProxyHelper.xcodeproj`
 2. Signing & Capabilities → 设置你的 Development Team
 3. `⌘R` 运行
