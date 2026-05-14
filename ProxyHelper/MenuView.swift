@@ -102,16 +102,25 @@ struct MenuView: View {
     }
 
     func startKernel() async {
+        let appState = state
+        KernelManager.shared.onUnexpectedStop = {
+            appState.isRunning = false
+            appState.errorMessage = "内核意外停止"
+            appState.uploadSpeed = "↑ 0 B/s"
+            appState.downloadSpeed = "↓ 0 B/s"
+        }
         do {
             try KernelManager.shared.start(
                 mihomoPath: state.effectiveMihomoPath,
                 configPath: state.activeConfigPath
             )
-            let api = MihomoAPI(baseURL: "http://127.0.0.1:9090", secret: "")
+            let cfg = state.apiConfig
+            let api = MihomoAPI(baseURL: cfg.baseURL, secret: cfg.secret)
             let ready = await api.waitUntilReady()
             guard ready else {
                 state.errorMessage = "内核启动超时"
                 KernelManager.shared.stop()
+                KernelManager.shared.onUnexpectedStop = nil
                 return
             }
             SystemProxyManager.shared.enable(
@@ -123,11 +132,13 @@ struct MenuView: View {
             state.errorMessage = nil
             startTrafficMonitor()
         } catch {
+            KernelManager.shared.onUnexpectedStop = nil
             state.errorMessage = error.localizedDescription
         }
     }
 
     func stopKernel() async {
+        KernelManager.shared.onUnexpectedStop = nil
         SystemProxyManager.shared.disable()
         state.systemProxyEnabled = false
         KernelManager.shared.stop()
@@ -137,12 +148,18 @@ struct MenuView: View {
     }
 
     func startTrafficMonitor() {
-        let api = MihomoAPI(baseURL: "http://127.0.0.1:9090", secret: "")
+        let appState = state
         Task {
-            for await traffic in api.trafficStream() {
-                guard state.isRunning else { break }
-                state.uploadSpeed = "↑ \(formatBytes(traffic.upload))/s"
-                state.downloadSpeed = "↓ \(formatBytes(traffic.download))/s"
+            while appState.isRunning {
+                let cfg = appState.apiConfig
+                let api = MihomoAPI(baseURL: cfg.baseURL, secret: cfg.secret)
+                for await traffic in api.trafficStream() {
+                    guard appState.isRunning else { return }
+                    appState.uploadSpeed = "↑ \(formatBytes(traffic.upload))/s"
+                    appState.downloadSpeed = "↓ \(formatBytes(traffic.download))/s"
+                }
+                guard appState.isRunning else { return }
+                try? await Task.sleep(for: .milliseconds(500))
             }
         }
     }

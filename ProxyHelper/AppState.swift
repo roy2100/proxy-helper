@@ -55,6 +55,13 @@ final class AppState {
         configs.first { $0.path == activeConfigPath }
     }
 
+    var apiConfig: (baseURL: String, secret: String) {
+        guard !activeConfigPath.isEmpty else {
+            return ("http://127.0.0.1:9090", "")
+        }
+        return ConfigManager.shared.parseAPIConfig(at: activeConfigPath)
+    }
+
     init() {
         configs = ConfigManager.shared.scan(folderPath: configFolderPath)
     }

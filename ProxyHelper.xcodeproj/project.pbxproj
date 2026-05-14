@@ -16,8 +16,9 @@
 		7521A1B2C3D4E5F6A7B80046 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7521A1B2C3D4E5F6A7B80036 /* AppState.swift */; };
 		7521A1B2C3D4E5F6A7B80047 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7521A1B2C3D4E5F6A7B80037 /* SettingsView.swift */; };
 		7521A1B2C3D4E5F6A7B80048 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7521A1B2C3D4E5F6A7B80038 /* Assets.xcassets */; };
-		7521A1B2C3D4E5F6A7B8007D /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7521A1B2C3D4E5F6A7B8007C /* Utilities.swift */; };
 		7521A1B2C3D4E5F6A7B80077 /* ProxyHelperTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7521A1B2C3D4E5F6A7B80076 /* ProxyHelperTests.swift */; };
+		7521A1B2C3D4E5F6A7B8007D /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7521A1B2C3D4E5F6A7B8007C /* Utilities.swift */; };
+		CAFE000000000000000000A3 /* Yams in Frameworks */ = {isa = PBXBuildFile; productRef = CAFE000000000000000000A2 /* Yams */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -31,6 +32,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		5965DB8E2FB62CD1000E4559 /* config.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = config.yaml; sourceTree = "<group>"; };
 		7521A1B2C3D4E5F6A7B80020 /* ProxyHelper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ProxyHelper.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7521A1B2C3D4E5F6A7B80030 /* ProxyHelperApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProxyHelperApp.swift; sourceTree = "<group>"; };
 		7521A1B2C3D4E5F6A7B80031 /* MenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuView.swift; sourceTree = "<group>"; };
@@ -43,9 +45,9 @@
 		7521A1B2C3D4E5F6A7B80038 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		7521A1B2C3D4E5F6A7B80039 /* ProxyHelper.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ProxyHelper.entitlements; sourceTree = "<group>"; };
 		7521A1B2C3D4E5F6A7B8003A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		7521A1B2C3D4E5F6A7B8007C /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
 		7521A1B2C3D4E5F6A7B80076 /* ProxyHelperTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProxyHelperTests.swift; sourceTree = "<group>"; };
 		7521A1B2C3D4E5F6A7B80079 /* ProxyHelperTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ProxyHelperTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		7521A1B2C3D4E5F6A7B8007C /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -53,6 +55,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CAFE000000000000000000A3 /* Yams in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -72,6 +75,7 @@
 				7521A1B2C3D4E5F6A7B80004 /* ProxyHelper */,
 				7521A1B2C3D4E5F6A7B80078 /* ProxyHelperTests */,
 				7521A1B2C3D4E5F6A7B80003 /* Products */,
+				5965DB8E2FB62CD1000E4559 /* config.yaml */,
 			);
 			sourceTree = "<group>";
 		};
@@ -127,6 +131,9 @@
 			dependencies = (
 			);
 			name = ProxyHelper;
+			packageProductDependencies = (
+				CAFE000000000000000000A2 /* Yams */,
+			);
 			productName = ProxyHelper;
 			productReference = 7521A1B2C3D4E5F6A7B80020 /* ProxyHelper.app */;
 			productType = "com.apple.product-type.application";
@@ -177,6 +184,9 @@
 			);
 			mainGroup = 7521A1B2C3D4E5F6A7B80001;
 			productRefGroup = 7521A1B2C3D4E5F6A7B80003 /* Products */;
+			packageReferences = (
+				CAFE000000000000000000A1 /* XCRemoteSwiftPackageReference "Yams" */,
+			);
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -456,6 +466,24 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		CAFE000000000000000000A1 /* XCRemoteSwiftPackageReference "Yams" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/jpsim/Yams.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		CAFE000000000000000000A2 /* Yams */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CAFE000000000000000000A1 /* XCRemoteSwiftPackageReference "Yams" */;
+			productName = Yams;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 7521A1B2C3D4E5F6A7B80000 /* Project object */;
 }

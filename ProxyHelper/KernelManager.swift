@@ -9,6 +9,8 @@ final class KernelManager {
     private var restartCount = 0
     private let maxRestarts = 3
 
+    var onUnexpectedStop: (@MainActor () -> Void)?
+
     private static let pidKey = "lastMihomoProxyPID"
 
     private init() {
@@ -101,10 +103,13 @@ final class KernelManager {
         mihomoPath: String,
         configPath: String
     ) {
-        guard reason == .exit && status != 0 else { return }
+        // 正常退出（status 0）不重启
+        guard !(reason == .exit && status == 0) else { return }
         if restartCount < maxRestarts {
             restartCount += 1
             try? launch(mihomoPath: mihomoPath, configPath: configPath)
+        } else {
+            onUnexpectedStop?()
         }
     }
 

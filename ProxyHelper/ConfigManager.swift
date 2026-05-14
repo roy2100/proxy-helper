@@ -1,4 +1,5 @@
 import Foundation
+import Yams
 
 @MainActor
 final class ConfigManager {
@@ -79,7 +80,8 @@ final class ConfigManager {
                 mihomoPath: appState.effectiveMihomoPath,
                 configPath: config.path
             )
-            let api = MihomoAPI(baseURL: "http://127.0.0.1:9090", secret: "")
+            let apiCfg = appState.apiConfig
+            let api = MihomoAPI(baseURL: apiCfg.baseURL, secret: apiCfg.secret)
             let ready = await api.waitUntilReady()
             guard ready else {
                 appState.errorMessage = "切换配置后内核启动超时"
@@ -95,5 +97,20 @@ final class ConfigManager {
         } catch {
             appState.errorMessage = error.localizedDescription
         }
+    }
+
+    func parseAPIConfig(at path: String) -> (baseURL: String, secret: String) {
+        guard let content = try? String(contentsOfFile: path, encoding: .utf8),
+              let yaml = try? Yams.load(yaml: content) as? [String: Any] else {
+            return ("http://127.0.0.1:9090", "")
+        }
+        let secret = yaml["secret"] as? String ?? ""
+        var port = 9090
+        if let ec = yaml["external-controller"] as? String,
+           let colonIdx = ec.lastIndex(of: ":"),
+           let p = Int(ec[ec.index(after: colonIdx)...]) {
+            port = p
+        }
+        return ("http://127.0.0.1:\(port)", secret)
     }
 }
