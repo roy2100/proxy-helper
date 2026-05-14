@@ -34,5 +34,11 @@ struct ProxyHelperApp: App {
                 .environment(appState)
         }
         .windowResizability(.contentSize)
+
+        Window("Dashboard", id: "dashboard") {
+            DashboardView()
+                .environment(appState)
+        }
+        .windowResizability(.contentMinSize)
     }
 }

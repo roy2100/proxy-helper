@@ -52,6 +52,12 @@ struct MenuView: View {
             NSWorkspace.shared.open(KernelManager.mihomoHome)
         }
 
+        Button("Dashboard...") {
+            openWindow(id: "dashboard")
+            NSApp.activate(ignoringOtherApps: true)
+        }
+        .disabled(!state.isRunning)
+
         Button("日志...") {
             openWindow(id: "logs")
             NSApp.activate(ignoringOtherApps: true)
@@ -83,12 +89,13 @@ struct MenuView: View {
             }
 
             if state.isRunning {
-                HStack {
+                VStack(alignment: .leading, spacing: 2) {
                     Text(state.uploadSpeed)
-                    Spacer()
+                        .lineLimit(1)
                     Text(state.downloadSpeed)
+                        .lineLimit(1)
                 }
-                .font(.caption)
+                .font(.caption.monospacedDigit())
                 .foregroundStyle(.secondary)
 
                 Text("HTTP 代理：127.0.0.1:\(String(state.httpPort))")
@@ -105,7 +112,8 @@ struct MenuView: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
-        .frame(minWidth: 220, alignment: .leading)
+        .frame(width: 220, alignment: .leading)
+        .allowsHitTesting(false)
     }
 
     // MARK: - Actions
