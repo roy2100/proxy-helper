@@ -48,6 +48,10 @@ struct MenuView: View {
         }
         .disabled(state.configFolderPath.isEmpty)
 
+        Button("打开数据目录") {
+            NSWorkspace.shared.open(KernelManager.mihomoHome)
+        }
+
         Button("日志...") {
             openWindow(id: "logs")
             NSApp.activate(ignoringOtherApps: true)

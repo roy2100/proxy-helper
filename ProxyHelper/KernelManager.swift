@@ -15,6 +15,11 @@ final class KernelManager {
 
     private static let pidKey = "lastMihomoProxyPID"
 
+    static let mihomoHome: URL = {
+        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        return appSupport.appendingPathComponent("ProxyHelper/mihomo", isDirectory: true)
+    }()
+
     private init() {
         killSavedPID()
     }
@@ -58,6 +63,8 @@ final class KernelManager {
             throw KernelError.configNotFound(path: configPath)
         }
 
+        try FileManager.default.createDirectory(at: Self.mihomoHome, withIntermediateDirectories: true)
+
         // kill 上次保存的 PID（处理 crash 遗留的孤儿进程）
         killSavedPID()
 
@@ -72,8 +79,7 @@ final class KernelManager {
 
         let p = Process()
         p.executableURL = URL(fileURLWithPath: mihomoPath)
-        let configDir = URL(fileURLWithPath: configPath).deletingLastPathComponent().path
-        p.arguments = ["-d", configDir, "-f", configPath]
+        p.arguments = ["-d", Self.mihomoHome.path, "-f", configPath]
 
         let pipe = Pipe()
         p.standardOutput = pipe
