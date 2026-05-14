@@ -6,10 +6,12 @@ final class KernelManager {
     static let shared = KernelManager()
     private var process: Process?
     private var logPipe: Pipe?
+    private var logReadTask: Task<Void, Never>?
     private var restartCount = 0
     private let maxRestarts = 3
 
     var onUnexpectedStop: (@MainActor () -> Void)?
+    var onLogLine: (@MainActor (String) -> Void)?
 
     private static let pidKey = "lastMihomoProxyPID"
 
@@ -25,6 +27,8 @@ final class KernelManager {
     func stop() {
         guard let p = process else { return }
         process = nil
+        logReadTask?.cancel()
+        logReadTask = nil
         clearSavedPID()
         p.terminate()
         let pid = p.processIdentifier
@@ -37,6 +41,8 @@ final class KernelManager {
     func stopImmediately() {
         guard let p = process else { return }
         process = nil
+        logReadTask?.cancel()
+        logReadTask = nil
         kill(p.processIdentifier, SIGKILL)
         clearSavedPID()
     }
@@ -73,6 +79,17 @@ final class KernelManager {
         p.standardOutput = pipe
         p.standardError = pipe
         self.logPipe = pipe
+
+        logReadTask?.cancel()
+        let handle = pipe.fileHandleForReading
+        logReadTask = Task.detached { [weak self] in
+            do {
+                for try await line in handle.bytes.lines {
+                    guard !Task.isCancelled else { break }
+                    await MainActor.run { self?.onLogLine?(line) }
+                }
+            } catch {}
+        }
 
         p.terminationHandler = { [weak self] proc in
             let terminatedPID = proc.processIdentifier

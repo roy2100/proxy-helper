@@ -48,6 +48,11 @@ struct MenuView: View {
         }
         .disabled(state.configFolderPath.isEmpty)
 
+        Button("日志...") {
+            openWindow(id: "logs")
+            NSApp.activate(ignoringOtherApps: true)
+        }
+
         Button("设置...") {
             openWindow(id: "settings")
             NSApp.activate(ignoringOtherApps: true)
@@ -109,6 +114,12 @@ struct MenuView: View {
             appState.uploadSpeed = "↑ 0 B/s"
             appState.downloadSpeed = "↓ 0 B/s"
         }
+        KernelManager.shared.onLogLine = { line in
+            appState.logLines.append(line)
+            if appState.logLines.count > 2000 {
+                appState.logLines.removeFirst(appState.logLines.count - 2000)
+            }
+        }
         do {
             try KernelManager.shared.start(
                 mihomoPath: state.effectiveMihomoPath,
@@ -139,6 +150,7 @@ struct MenuView: View {
 
     func stopKernel() async {
         KernelManager.shared.onUnexpectedStop = nil
+        KernelManager.shared.onLogLine = nil
         SystemProxyManager.shared.disable()
         state.systemProxyEnabled = false
         KernelManager.shared.stop()

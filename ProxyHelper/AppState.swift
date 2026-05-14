@@ -10,6 +10,7 @@ final class AppState {
     var downloadSpeed: String = "↓ 0 B/s"
     var errorMessage: String? = nil
     var configs: [ConfigFile] = []
+    var logLines: [String] = []
 
     // 存储属性 + didSet 确保 @Observable 能追踪变更
     var activeConfigPath: String = UserDefaults.standard.string(forKey: "activeConfigPath") ?? "" {

@@ -28,5 +28,11 @@ struct ProxyHelperApp: App {
                 .environment(appState)
         }
         .windowResizability(.contentSize)
+
+        Window("mihomo 日志", id: "logs") {
+            LogView()
+                .environment(appState)
+        }
+        .windowResizability(.contentSize)
     }
 }
