@@ -5,7 +5,32 @@ struct MenuView: View {
     @Environment(\.openWindow) var openWindow
 
     var body: some View {
-        statusBlock
+        // 状态行
+        Label {
+            Text(state.isStarting ? "启动中..." : state.isRunning ? "运行中" : "已停止")
+        } icon: {
+            if state.isStarting {
+                ProgressView().controlSize(.mini)
+            } else {
+                Circle()
+                    .fill(state.isRunning ? Color.green : Color.secondary)
+                    .frame(width: 8, height: 8)
+            }
+        }
+        .font(.headline)
+
+        if state.isRunning {
+            Text("HTTP 代理：127.0.0.1:\(String(state.httpPort))")
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
+        }
+
+        if let err = state.errorMessage {
+            Label(err, systemImage: "exclamationmark.triangle")
+                .font(.caption)
+                .foregroundStyle(.red)
+                .lineLimit(2)
+        }
 
         Divider()
 
@@ -73,49 +98,6 @@ struct MenuView: View {
             .keyboardShortcut("q", modifiers: .command)
     }
 
-    @ViewBuilder
-    var statusBlock: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 6) {
-                if state.isStarting {
-                    ProgressView().controlSize(.mini)
-                } else {
-                    Circle()
-                        .fill(state.isRunning ? Color.green : Color.secondary)
-                        .frame(width: 8, height: 8)
-                }
-                Text(state.isStarting ? "启动中..." : state.isRunning ? "运行中" : "已停止")
-                    .font(.headline)
-            }
-
-            if state.isRunning {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(state.uploadSpeed)
-                        .lineLimit(1)
-                    Text(state.downloadSpeed)
-                        .lineLimit(1)
-                }
-                .font(.caption.monospacedDigit())
-                .foregroundStyle(.secondary)
-
-                Text("HTTP 代理：127.0.0.1:\(String(state.httpPort))")
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
-            }
-
-            if let err = state.errorMessage {
-                Label(err, systemImage: "exclamationmark.triangle")
-                    .font(.caption)
-                    .foregroundStyle(.red)
-                    .lineLimit(2)
-            }
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .frame(width: 220, alignment: .leading)
-        .allowsHitTesting(false)
-    }
-
     // MARK: - Actions
 
     func switchTo(_ config: ConfigFile) async {
@@ -130,8 +112,6 @@ struct MenuView: View {
         KernelManager.shared.onUnexpectedStop = {
             appState.isRunning = false
             appState.errorMessage = "内核意外停止"
-            appState.uploadSpeed = "↑ 0 B/s"
-            appState.downloadSpeed = "↓ 0 B/s"
         }
         KernelManager.shared.onLogLine = { line in
             appState.logLines.append(line)
@@ -160,7 +140,6 @@ struct MenuView: View {
             state.isRunning = true
             state.systemProxyEnabled = true
             state.errorMessage = nil
-            startTrafficMonitor()
         } catch {
             KernelManager.shared.onUnexpectedStop = nil
             state.errorMessage = error.localizedDescription
@@ -174,25 +153,6 @@ struct MenuView: View {
         state.systemProxyEnabled = false
         KernelManager.shared.stop()
         state.isRunning = false
-        state.uploadSpeed = "↑ 0 B/s"
-        state.downloadSpeed = "↓ 0 B/s"
-    }
-
-    func startTrafficMonitor() {
-        let appState = state
-        Task {
-            while appState.isRunning {
-                let cfg = appState.apiConfig
-                let api = MihomoAPI(baseURL: cfg.baseURL, secret: cfg.secret)
-                for await traffic in api.trafficStream() {
-                    guard appState.isRunning else { return }
-                    appState.uploadSpeed = "↑ \(formatBytes(traffic.upload))/s"
-                    appState.downloadSpeed = "↓ \(formatBytes(traffic.download))/s"
-                }
-                guard appState.isRunning else { return }
-                try? await Task.sleep(for: .milliseconds(500))
-            }
-        }
     }
 
     func refreshConfigs() {

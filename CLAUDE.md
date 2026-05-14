@@ -126,6 +126,35 @@ WebSocket 端点用 `ws://` 替换 `http://`，路径相同。
 - `PUT /debug/gc` — 触发 GC
 - `/debug/pprof` — 性能分析（需 debug 日志级别）
 
+## [Zashboard](http://board.zash.run.place/) URL params format
+
+#### basic example
+
+http://host:port/#/setup?hostname=ipordomain&port=9090&secret=123456
+
+1. **`http` / `https`**
+   - Determines the protocol (`http` or `https`).
+   - Default: current page protocol
+
+2. **`hostname`**
+   - The Clash API's IP or domain.
+
+3. **`port`**
+   - The Clash API port.
+
+4. **`secondaryPath`**
+   - Optional path appended to the base URL.
+   - Default: An empty string.
+
+5. **`secret`**
+   - Password for authentication.
+
+6. **`disableUpgradeCore`**
+   - Set '1' to hide upgrade core button
+
+7. **`disableTunMode`**
+   - Set '1' to hide tun switch
+
 ## 开发原则
 
 **不要修改用户的配置文件。** ProxyHelper 将配置文件目录直接透传给 mihomo（`-d <config_dir>`），由 mihomo 原生加载，不做任何预处理或注入。对配置文件的唯一操作是只读（扫描文件列表、解析 `external-controller`/`secret` 用于 API 连接），不得写入、覆盖或修改用户的 `.yaml`/`.yml` 文件。
