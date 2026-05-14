@@ -78,8 +78,15 @@ struct MenuView: View {
         }
 
         Button("Dashboard...") {
-            openWindow(id: "dashboard")
-            NSApp.activate(ignoringOtherApps: true)
+            let cfg = state.apiConfig
+            let base = URL(string: cfg.baseURL) ?? URL(string: "http://127.0.0.1:9090")!
+            let host = base.host ?? "127.0.0.1"
+            let port = base.port ?? 9090
+            var fragment = "/setup?hostname=\(host)&port=\(port)"
+            if !cfg.secret.isEmpty { fragment += "&secret=\(cfg.secret)" }
+            if let url = URL(string: "https://board.zash.run.place/#\(fragment)") {
+                NSWorkspace.shared.open(url)
+            }
         }
         .disabled(!state.isRunning)
 
