@@ -2,34 +2,6 @@ import Testing
 import Foundation
 @testable import ProxyHelper
 
-// MARK: - formatBytes
-
-@Suite struct FormatBytesTests {
-    @Test func zero() {
-        #expect(formatBytes(0) == "0 B")
-    }
-
-    @Test func bytes() {
-        #expect(formatBytes(512) == "512 B")
-    }
-
-    @Test func exactKilobyte() {
-        #expect(formatBytes(1024) == "1 KB")
-    }
-
-    @Test func fractionalKilobyte() {
-        #expect(formatBytes(1536) == "2 KB")
-    }
-
-    @Test func exactMegabyte() {
-        #expect(formatBytes(1024 * 1024) == "1.0 MB")
-    }
-
-    @Test func fractionalMegabyte() {
-        #expect(formatBytes(1024 * 1024 + 512 * 1024) == "1.5 MB")
-    }
-}
-
 // MARK: - ConfigManager
 
 @Suite @MainActor struct ConfigManagerTests {
@@ -80,6 +52,59 @@ import Foundation
         let results = ConfigManager.shared.scan(folderPath: dir.path)
         #expect(results.first?.name == "newer")
         #expect(results.last?.name == "older")
+    }
+}
+
+// MARK: - ConfigManager.parseAPIConfig
+
+@Suite @MainActor struct ParseAPIConfigTests {
+    private func write(_ content: String) throws -> String {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString + ".yaml")
+        try content.write(to: url, atomically: true, encoding: .utf8)
+        return url.path
+    }
+
+    @Test func missingFileReturnsDefaults() {
+        let result = ConfigManager.shared.parseAPIConfig(at: "/nonexistent/path.yaml")
+        #expect(result.baseURL == "http://127.0.0.1:9090")
+        #expect(result.secret == "")
+    }
+
+    @Test func missingExternalControllerReturnsPort9090() throws {
+        let path = try write("mode: rule\n")
+        defer { try? FileManager.default.removeItem(atPath: path) }
+        let result = ConfigManager.shared.parseAPIConfig(at: path)
+        #expect(result.baseURL == "http://127.0.0.1:9090")
+        #expect(result.secret == "")
+    }
+
+    @Test func parsesPortFromExternalController() throws {
+        let path = try write("external-controller: 127.0.0.1:9097\n")
+        defer { try? FileManager.default.removeItem(atPath: path) }
+        let result = ConfigManager.shared.parseAPIConfig(at: path)
+        #expect(result.baseURL == "http://127.0.0.1:9097")
+    }
+
+    @Test func parsesSecret() throws {
+        let path = try write("external-controller: 0.0.0.0:9090\nsecret: mytoken\n")
+        defer { try? FileManager.default.removeItem(atPath: path) }
+        let result = ConfigManager.shared.parseAPIConfig(at: path)
+        #expect(result.secret == "mytoken")
+    }
+
+    @Test func hostIsAlwaysLocalhostRegardlessOfBindAddress() throws {
+        let path = try write("external-controller: 0.0.0.0:7892\n")
+        defer { try? FileManager.default.removeItem(atPath: path) }
+        let result = ConfigManager.shared.parseAPIConfig(at: path)
+        #expect(result.baseURL == "http://127.0.0.1:7892")
+    }
+
+    @Test func emptySecretFieldTreatedAsEmpty() throws {
+        let path = try write("external-controller: 127.0.0.1:9090\nsecret: \"\"\n")
+        defer { try? FileManager.default.removeItem(atPath: path) }
+        let result = ConfigManager.shared.parseAPIConfig(at: path)
+        #expect(result.secret == "")
     }
 }
 
