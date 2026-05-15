@@ -64,6 +64,18 @@ struct MenuView: View {
 
         Divider()
 
+        Button {
+            Task { await toggleTun() }
+        } label: {
+            if state.tunEnabled {
+                Label("TUN 模式", systemImage: "checkmark")
+            } else {
+                Text("TUN 模式")
+            }
+        }
+
+        Divider()
+
         if state.isRunning {
             Button("停止") {
                 Task { await stopKernel() }
@@ -165,6 +177,19 @@ struct MenuView: View {
         state.systemProxyEnabled = false
         KernelManager.shared.stop()
         state.isRunning = false
+    }
+
+    func toggleTun() async {
+        state.tunEnabled.toggle()
+        guard state.isRunning else { return }
+        let cfg = state.apiConfig
+        let api = MihomoAPI(baseURL: cfg.baseURL, secret: cfg.secret)
+        do {
+            try await api.patchConfigs(["tun": ["enable": state.tunEnabled]])
+            state.errorMessage = nil
+        } catch {
+            state.errorMessage = "TUN 切换失败：\(error.localizedDescription)"
+        }
     }
 
     func refreshConfigs() {
