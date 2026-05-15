@@ -6,34 +6,50 @@ struct MenuView: View {
 
     var body: some View {
         Section("状态") {
-            Label {
-                Text(state.isStarting ? "启动中..." : state.isRunning ? "运行中" : "已停止")
-            } icon: {
-                if state.isStarting {
-                    ProgressView().controlSize(.mini)
-                } else {
-                    Image(systemName: state.isRunning ? "circle.fill" : "circle")
-                        .foregroundStyle(state.isRunning ? Color.green : Color.secondary)
+            Button {
+                Task {
+                    if state.isRunning {
+                        await stopKernel()
+                    } else if !state.isStarting {
+                        await startKernel()
+                    }
+                }
+            } label: {
+                Label {
+                    Text(state.isStarting ? "启动中..." : state.isRunning ? "运行中" : "已停止")
+                } icon: {
+                    if state.isStarting {
+                        ProgressView().controlSize(.mini)
+                    } else {
+                        Image(systemName: state.isRunning ? "circle.fill" : "circle")
+                            .foregroundStyle(state.isRunning ? Color.green : Color.secondary)
+                    }
                 }
             }
-            .font(.headline)
+            .disabled(state.isStarting || (!state.isRunning && state.activeConfigPath.isEmpty))
 
             if state.isRunning {
-                Text(proxyPortSummary)
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
+                Button {
+                    copyProxyAddress()
+                } label: {
+                    Text(proxyPortSummary)
+                }
                 if let version = state.kernelVersion {
-                    Text("内核：\(version)")
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
+                    Button {
+                        NSWorkspace.shared.open(DashboardURL.homepage)
+                    } label: {
+                        Text("内核：\(version)")
+                    }
                 }
             }
 
             if let err = state.errorMessage {
-                Label(err, systemImage: "exclamationmark.triangle")
-                    .font(.caption)
-                    .foregroundStyle(.red)
-                    .lineLimit(3)
+                Button(role: .destructive) {
+                    openWindow(id: "logs")
+                    NSApp.activate(ignoringOtherApps: true)
+                } label: {
+                    Label(err, systemImage: "exclamationmark.triangle")
+                }
             }
         }
 
@@ -70,19 +86,6 @@ struct MenuView: View {
 
         Button("复制启用 TUN 命令") {
             copyEnableTunCommand()
-        }
-
-        Divider()
-
-        if state.isRunning {
-            Button("停止") {
-                Task { await stopKernel() }
-            }
-        } else {
-            Button("启动") {
-                Task { await startKernel() }
-            }
-            .disabled(state.activeConfigPath.isEmpty || state.isStarting)
         }
 
         Divider()
@@ -130,7 +133,11 @@ struct MenuView: View {
         defer { state.isStarting = false }
         let appState = state
         KernelManager.shared.onUnexpectedStop = { error in
+            NetworkChangeMonitor.shared.stop()
+            SystemProxyManager.shared.disable()
+            appState.systemProxyEnabled = false
             appState.isRunning = false
+            appState.kernelVersion = nil
             if let error {
                 appState.errorMessage = "内核重启失败：\(error.localizedDescription)"
             } else {
@@ -198,6 +205,14 @@ struct MenuView: View {
         KernelManager.shared.stop()
         state.isRunning = false
         state.kernelVersion = nil
+    }
+
+    func copyProxyAddress() {
+        let ports = state.proxyPorts
+        let address = "127.0.0.1:\(ports.http)"
+        let pb = NSPasteboard.general
+        pb.clearContents()
+        pb.setString(address, forType: .string)
     }
 
     func copyEnableTunCommand() {
