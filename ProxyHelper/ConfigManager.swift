@@ -98,7 +98,7 @@ final class ConfigManager {
                         appState.errorMessage = "TUN 启用失败：\(error.localizedDescription)"
                     }
                 } else {
-                    appState.errorMessage = "TUN 未启用：mihomo 未以 root 运行，请先执行 scripts/enable-tun.sh"
+                    appState.errorMessage = MenuView.tunRootHint
                 }
             }
             SystemProxyManager.shared.enable(
