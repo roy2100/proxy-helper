@@ -7,7 +7,7 @@ macOS 菜单栏应用，控制本地 mihomo 内核的启动与停止，自动设
 - 一键启动/停止 mihomo 内核
 - 自动设置/清除 macOS 系统代理（HTTP + SOCKS）
 - 扫描指定文件夹下所有 `.yaml` / `.yml` 配置文件，支持快速切换
-- 实时显示上传/下载速率（需要 mihomo 配置 `external-controller`）
+- 启动前依次检测配置中声明的端口（`external-controller` / `mixed-port` 或 `port` + `socks-port`），占用即报错不启动
 - 内核崩溃后自动重启（最多 3 次）
 - 纯菜单栏 app，不占 Dock
 
@@ -51,14 +51,6 @@ xattr -dr com.apple.quarantine /Applications/ProxyHelper.app
 3. 回到菜单，选择配置文件 → **启动**
 
 ProxyHelper 会从当前配置文件读取 `mixed-port`、`port`、`socks-port` 来设置系统代理；缺失时回退到 `7890 / 7891`。
-
-## 速率显示
-
-需要在 mihomo 配置文件中添加：
-
-```yaml
-external-controller: 127.0.0.1:9090
-```
 
 ## TUN 模式
 

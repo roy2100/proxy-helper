@@ -34,7 +34,7 @@ xcodebuild -project ProxyHelper.xcodeproj -scheme ProxyHelper -destination 'plat
 AppState（@Observable, @MainActor）
   ├── KernelManager.shared  — 管理 mihomo 子进程生命周期
   ├── ConfigManager.shared  — 扫描/监听配置文件夹，解析配置字段
-  ├── MihomoAPI             — REST/WebSocket 客户端（健康检查、流量流）
+  ├── MihomoAPI             — REST 客户端（健康检查、配置热更新）
   └── SystemProxyManager    — 通过 networksetup 设置/清除系统代理
 ```
 
@@ -65,7 +65,7 @@ ForEach(state.configs) { ... }
 
 ### 启动/停止流程
 
-**启动**：`KernelManager.start()` → `MihomoAPI.waitUntilReady()` 轮询 `/version` → `SystemProxyManager.enable()` → 启动 `trafficStream()` WebSocket → 更新 `appState.isRunning = true`
+**启动**：`KernelManager.start()` → `MihomoAPI.waitUntilReady()` 轮询 `/version` → `SystemProxyManager.enable()` → 更新 `appState.isRunning = true`
 
 **停止**：必须先 `SystemProxyManager.disable()` 再 `KernelManager.stop()`，顺序不能颠倒，否则代理指向已关闭端口导致断网。
 
@@ -99,7 +99,7 @@ WebSocket 端点用 `ws://` 替换 `http://`，路径相同。
 | 端点 | 方法 | 用途 |
 |------|------|------|
 | `GET /version` | HTTP | 健康检查，内核就绪探针 |
-| `WS /traffic` | WebSocket | 实时流量（`{"up": <bytes/s>, "down": <bytes/s>}`） |
+| `PATCH /configs` | HTTP | 运行时热更新（当前用于 TUN 启停） |
 
 ### 可扩展端点
 
