@@ -26,11 +26,10 @@ struct SettingsView: View {
                     .foregroundStyle(.secondary)
 
                 if !state.configFolderPath.isEmpty {
-                    let configs = ConfigManager.shared.scan(folderPath: state.configFolderPath)
-                    if configs.isEmpty {
+                    if state.configs.isEmpty {
                         Text("未找到配置文件").font(.caption).foregroundStyle(.red)
                     } else {
-                        ForEach(configs) { c in
+                        ForEach(state.configs) { c in
                             HStack {
                                 Image(systemName: "doc.text").foregroundStyle(.secondary)
                                 Text(c.name).font(.caption)

@@ -40,6 +40,29 @@ AppState（@Observable, @MainActor）
 
 所有单例和 `AppState` 均标注 `@MainActor`，UI 层通过 `.environment(appState)` 获取状态。
 
+### @Observable + @Environment 使用规则
+
+**读取状态**：在视图 `body` 里直接访问 `state.someProperty`，SwiftUI 会自动追踪依赖并在属性变更时重新渲染。
+
+**双向绑定**：需要写入时，在 `body` 顶部声明 `@Bindable var state = state`，再用 `$state.someProperty`。
+
+**`@ObservationIgnored` 属性的陷阱**：`mihomoPath`、`configFolderPath` 等持久化到 `UserDefaults` 的属性标注了 `@ObservationIgnored`，SwiftUI **不会**追踪它们——在 `body` 里读取这些属性不会在它们变更时触发重新渲染。
+
+正确做法：**不要**在视图 `body` 里用 `@ObservationIgnored` 属性驱动列表渲染；应在 `onChange` 里将变更同步到受追踪的属性（如 `state.configs`），视图 body 只读取受追踪属性：
+
+```swift
+// ❌ 错误：configFolderPath 是 @ObservationIgnored，选择文件夹后不会重新渲染
+let configs = ConfigManager.shared.scan(folderPath: state.configFolderPath)
+ForEach(configs) { ... }
+
+// ✅ 正确：state.configs 受 @Observable 追踪，onChange 更新它后视图自动刷新
+ForEach(state.configs) { ... }
+
+.onChange(of: state.configFolderPath) { _, newValue in
+    state.configs = ConfigManager.shared.scan(folderPath: newValue)
+}
+```
+
 ### 启动/停止流程
 
 **启动**：`KernelManager.start()` → `MihomoAPI.waitUntilReady()` 轮询 `/version` → `SystemProxyManager.enable()` → 启动 `trafficStream()` WebSocket → 更新 `appState.isRunning = true`
