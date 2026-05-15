@@ -2,7 +2,6 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(AppState.self) var state
-    @State private var needsKernelRestart = false
 
     var body: some View {
         @Bindable var state = state
@@ -43,29 +42,9 @@ struct SettingsView: View {
                     }
                 }
 
-                if needsKernelRestart {
-                    HStack(spacing: 8) {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundStyle(.orange)
-                        Text("配置文件夹已更改，重启内核后生效")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        Spacer()
-                        Button("重启内核") {
-                            Task {
-                                let target = state.activeConfig ?? state.configs.first
-                                if let config = target {
-                                    state.activeConfigPath = config.path
-                                    await ConfigManager.shared.switchConfig(to: config, appState: state)
-                                }
-                                needsKernelRestart = false
-                            }
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .controlSize(.small)
-                        .disabled(state.configs.isEmpty || state.isStarting)
-                    }
-                }
+                Text("更改配置文件夹后需重启应用生效")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
         }
         .formStyle(.grouped)
@@ -78,18 +57,10 @@ struct SettingsView: View {
                 }
             }
         }
-        .onChange(of: state.configFolderPath) { oldValue, newValue in
+        .onChange(of: state.configFolderPath) { _, newValue in
             state.configs = ConfigManager.shared.scan(folderPath: newValue)
             ConfigManager.shared.startWatching(folderPath: newValue) {
                 state.configs = ConfigManager.shared.scan(folderPath: newValue)
-            }
-            if state.isRunning && !oldValue.isEmpty {
-                needsKernelRestart = true
-            }
-        }
-        .onChange(of: state.isRunning) {
-            if !state.isRunning {
-                needsKernelRestart = false
             }
         }
     }
