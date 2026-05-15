@@ -91,10 +91,14 @@ final class ConfigManager {
                 return
             }
             if appState.tunEnabled {
-                do {
-                    try await api.patchConfigs(["tun": ["enable": true]])
-                } catch {
-                    appState.errorMessage = "TUN 启用失败：\(error.localizedDescription)"
+                if KernelManager.shared.processIsRoot() {
+                    do {
+                        try await api.patchConfigs(["tun": ["enable": true]])
+                    } catch {
+                        appState.errorMessage = "TUN 启用失败：\(error.localizedDescription)"
+                    }
+                } else {
+                    appState.errorMessage = "TUN 未启用：mihomo 未以 root 运行，请先执行 scripts/enable-tun.sh"
                 }
             }
             SystemProxyManager.shared.enable(
