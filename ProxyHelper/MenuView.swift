@@ -12,7 +12,7 @@ struct MenuView: View {
             if state.isStarting {
                 ProgressView().controlSize(.mini)
             } else {
-                Image(systemName: "circle.fill")
+                Image(systemName: state.isRunning ? "circle.fill" : "circle")
                     .foregroundStyle(state.isRunning ? Color.green : Color.secondary)
             }
         }
