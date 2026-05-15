@@ -146,6 +146,105 @@ import Foundation
     }
 }
 
+// MARK: - ConfigManager.parseRequiredPorts
+
+@Suite @MainActor struct ParseRequiredPortsTests {
+    private func write(_ content: String) throws -> String {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString + ".yaml")
+        try content.write(to: url, atomically: true, encoding: .utf8)
+        return url.path
+    }
+
+    @Test func defaultsWhenMissing() {
+        let ports = ConfigManager.shared.parseRequiredPorts(at: "/nonexistent/path.yaml")
+        #expect(ports.count == 3)
+        #expect(ports[0].port == 9090)
+        #expect(ports[0].name == "external-controller")
+        #expect(ports[1] == (name: "port", port: 7890))
+        #expect(ports[2] == (name: "socks-port", port: 7891))
+    }
+
+    @Test func mixedPortCollapsesToOneEntry() throws {
+        let path = try write("external-controller: 127.0.0.1:9097\nmixed-port: 10801\n")
+        defer { try? FileManager.default.removeItem(atPath: path) }
+
+        let ports = ConfigManager.shared.parseRequiredPorts(at: path)
+        #expect(ports.count == 2)
+        #expect(ports[0] == (name: "external-controller", port: 9097))
+        #expect(ports[1] == (name: "mixed-port", port: 10801))
+    }
+
+    @Test func splitHttpAndSocks() throws {
+        let path = try write("external-controller: 127.0.0.1:9097\nport: 8080\nsocks-port: 8081\n")
+        defer { try? FileManager.default.removeItem(atPath: path) }
+
+        let ports = ConfigManager.shared.parseRequiredPorts(at: path)
+        #expect(ports.count == 3)
+        #expect(ports[0].port == 9097)
+        #expect(ports[1].port == 8080)
+        #expect(ports[2].port == 8081)
+    }
+}
+
+// MARK: - 端口占用检测
+
+@Suite struct PortInUseTests {
+    @Test func freePortReturnsFalse() {
+        // 临时绑定拿到空闲端口，再关闭，等到释放后检测应为 false
+        let probe = socket(AF_INET, SOCK_STREAM, 0)
+        var addr = sockaddr_in()
+        addr.sin_len = UInt8(MemoryLayout<sockaddr_in>.size)
+        addr.sin_family = sa_family_t(AF_INET)
+        addr.sin_port = 0
+        addr.sin_addr.s_addr = in_addr_t(INADDR_ANY).bigEndian
+        _ = withUnsafePointer(to: &addr) { ptr in
+            ptr.withMemoryRebound(to: sockaddr.self, capacity: 1) { sockPtr in
+                bind(probe, sockPtr, socklen_t(MemoryLayout<sockaddr_in>.size))
+            }
+        }
+        var actual = sockaddr_in()
+        var len = socklen_t(MemoryLayout<sockaddr_in>.size)
+        _ = withUnsafeMutablePointer(to: &actual) { ptr in
+            ptr.withMemoryRebound(to: sockaddr.self, capacity: 1) { sockPtr in
+                getsockname(probe, sockPtr, &len)
+            }
+        }
+        let port = Int(UInt16(bigEndian: actual.sin_port))
+        close(probe)
+
+        #expect(isLocalTCPPortInUse(port) == false)
+    }
+
+    @Test func occupiedPortReturnsTrue() {
+        let holder = socket(AF_INET, SOCK_STREAM, 0)
+        defer { close(holder) }
+
+        var addr = sockaddr_in()
+        addr.sin_len = UInt8(MemoryLayout<sockaddr_in>.size)
+        addr.sin_family = sa_family_t(AF_INET)
+        addr.sin_port = 0
+        addr.sin_addr.s_addr = in_addr_t(INADDR_ANY).bigEndian
+        let bindResult = withUnsafePointer(to: &addr) { ptr -> Int32 in
+            ptr.withMemoryRebound(to: sockaddr.self, capacity: 1) { sockPtr in
+                bind(holder, sockPtr, socklen_t(MemoryLayout<sockaddr_in>.size))
+            }
+        }
+        #expect(bindResult == 0)
+
+        var actual = sockaddr_in()
+        var len = socklen_t(MemoryLayout<sockaddr_in>.size)
+        _ = withUnsafeMutablePointer(to: &actual) { ptr in
+            ptr.withMemoryRebound(to: sockaddr.self, capacity: 1) { sockPtr in
+                getsockname(holder, sockPtr, &len)
+            }
+        }
+        let port = Int(UInt16(bigEndian: actual.sin_port))
+
+        #expect(isLocalTCPPortInUse(port) == true)
+    }
+}
+
 // MARK: - AppState
 
 @Suite @MainActor struct AppStateTests {

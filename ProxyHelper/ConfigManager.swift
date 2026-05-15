@@ -144,6 +144,24 @@ final class ConfigManager {
         )
     }
 
+    /// 启动 mihomo 前需要保证可用的端口列表，依次为 API、混合端口或 HTTP/SOCKS。
+    func parseRequiredPorts(at path: String) -> [(name: String, port: Int)] {
+        var ports: [(String, Int)] = []
+
+        let baseURL = parseAPIConfig(at: path).baseURL
+        let apiPort = URL(string: baseURL)?.port ?? 9090
+        ports.append(("external-controller", apiPort))
+
+        let proxy = parseProxyPorts(at: path)
+        if proxy.http == proxy.socks {
+            ports.append(("mixed-port", proxy.http))
+        } else {
+            ports.append(("port", proxy.http))
+            ports.append(("socks-port", proxy.socks))
+        }
+        return ports
+    }
+
     private func yamlPortValue(_ value: Any?) -> Int? {
         if let intValue = value as? Int, (1...65535).contains(intValue) {
             return intValue
