@@ -74,6 +74,10 @@ struct MenuView: View {
             }
         }
 
+        Button("复制启用 TUN 命令") {
+            copyEnableTunCommand()
+        }
+
         Divider()
 
         if state.isRunning {
@@ -188,6 +192,13 @@ struct MenuView: View {
         state.systemProxyEnabled = false
         KernelManager.shared.stop()
         state.isRunning = false
+    }
+
+    func copyEnableTunCommand() {
+        let cmd = "sudo chown root:wheel $(which mihomo) && sudo chmod u+s $(which mihomo)"
+        let pb = NSPasteboard.general
+        pb.clearContents()
+        pb.setString(cmd, forType: .string)
     }
 
     func toggleTun() async {
