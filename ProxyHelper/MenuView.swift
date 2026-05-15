@@ -6,32 +6,7 @@ struct MenuView: View {
 
     var body: some View {
         Section("状态") {
-            Button {
-                Task {
-                    if state.isRunning {
-                        await stopKernel()
-                    } else if !state.isStarting {
-                        await startKernel()
-                    }
-                }
-            } label: {
-                Label {
-                    Text(state.isStarting ? "启动中..." : state.isRunning ? "运行中" : "已停止")
-                } icon: {
-                    if state.isStarting {
-                        ProgressView().controlSize(.mini)
-                    } else if state.isRunning {
-                        Circle()
-                            .fill(Color.green)
-                            .frame(width: 8, height: 8)
-                    } else {
-                        Circle()
-                            .stroke(Color.secondary, lineWidth: 1)
-                            .frame(width: 8, height: 8)
-                    }
-                }
-            }
-            .disabled(state.isStarting || (!state.isRunning && state.activeConfigPath.isEmpty))
+            Text(state.isStarting ? "启动中..." : state.isRunning ? "运行中" : "已停止")
 
             if state.isRunning {
                 Button {
@@ -55,6 +30,17 @@ struct MenuView: View {
                 } label: {
                     Label(err, systemImage: "exclamationmark.triangle")
                 }
+            }
+
+            if state.isRunning {
+                Button("停止") {
+                    Task { await stopKernel() }
+                }
+            } else {
+                Button("启动") {
+                    Task { await startKernel() }
+                }
+                .disabled(state.activeConfigPath.isEmpty || state.isStarting)
             }
         }
 
