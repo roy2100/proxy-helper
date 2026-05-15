@@ -9,6 +9,9 @@ final class KernelManager {
     private var logReadTask: Task<Void, Never>?
     private var restartCount = 0
     private let maxRestarts = 3
+    private let stableWindow: Duration = .seconds(60)
+    private let restartBackoff: Duration = .seconds(1)
+    private var stabilityTimer: Task<Void, Never>?
 
     var onUnexpectedStop: (@MainActor (Error?) -> Void)?
     var onLogLine: (@MainActor (String) -> Void)?
@@ -34,6 +37,8 @@ final class KernelManager {
         process = nil
         logReadTask?.cancel()
         logReadTask = nil
+        stabilityTimer?.cancel()
+        stabilityTimer = nil
         clearSavedPID()
         p.terminate()
         let pid = p.processIdentifier
@@ -69,6 +74,8 @@ final class KernelManager {
         process = nil
         logReadTask?.cancel()
         logReadTask = nil
+        stabilityTimer?.cancel()
+        stabilityTimer = nil
         kill(p.processIdentifier, SIGKILL)
         clearSavedPID()
     }
@@ -147,6 +154,15 @@ final class KernelManager {
         try p.run()
         self.process = p
         savePID(p.processIdentifier)
+
+        // 运行稳定一段时间后清零重启计数，让长时间运行后的偶发崩溃恢复完整预算
+        stabilityTimer?.cancel()
+        let window = stableWindow
+        stabilityTimer = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: window)
+            guard !Task.isCancelled else { return }
+            self?.restartCount = 0
+        }
     }
 
     private func handleTermination(
@@ -155,6 +171,9 @@ final class KernelManager {
         mihomoPath: String,
         configPath: String
     ) {
+        stabilityTimer?.cancel()
+        stabilityTimer = nil
+
         // 正常退出（status 0）不重启
         guard !(reason == .exit && status == 0) else { return }
         guard restartCount < maxRestarts else {
@@ -162,10 +181,15 @@ final class KernelManager {
             return
         }
         restartCount += 1
-        do {
-            try launch(mihomoPath: mihomoPath, configPath: configPath)
-        } catch {
-            onUnexpectedStop?(error)
+        let backoff = restartBackoff
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(for: backoff)
+            guard let self else { return }
+            do {
+                try self.launch(mihomoPath: mihomoPath, configPath: configPath)
+            } catch {
+                self.onUnexpectedStop?(error)
+            }
         }
     }
 
