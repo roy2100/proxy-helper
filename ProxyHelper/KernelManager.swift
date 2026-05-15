@@ -43,6 +43,27 @@ final class KernelManager {
         }
     }
 
+    func processIsRoot() -> Bool {
+        guard let p = process, p.isRunning else { return false }
+        let task = Process()
+        task.executableURL = URL(fileURLWithPath: "/bin/ps")
+        task.arguments = ["-o", "uid=", "-p", "\(p.processIdentifier)"]
+        let pipe = Pipe()
+        task.standardOutput = pipe
+        task.standardError = Pipe()
+        do {
+            try task.run()
+            task.waitUntilExit()
+            let data = pipe.fileHandleForReading.readDataToEndOfFile()
+            if let s = String(data: data, encoding: .utf8)?
+                .trimmingCharacters(in: .whitespacesAndNewlines),
+               let uid = Int(s) {
+                return uid == 0
+            }
+        } catch {}
+        return false
+    }
+
     func stopImmediately() {
         guard let p = process else { return }
         process = nil

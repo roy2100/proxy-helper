@@ -158,10 +158,14 @@ struct MenuView: View {
                 return
             }
             if state.tunEnabled {
-                do {
-                    try await api.patchConfigs(["tun": ["enable": true]])
-                } catch {
-                    state.errorMessage = "TUN 启用失败：\(error.localizedDescription)"
+                if KernelManager.shared.processIsRoot() {
+                    do {
+                        try await api.patchConfigs(["tun": ["enable": true]])
+                    } catch {
+                        state.errorMessage = "TUN 启用失败：\(error.localizedDescription)"
+                    }
+                } else {
+                    state.errorMessage = "TUN 未启用：mihomo 未以 root 运行，请先执行 scripts/enable-tun.sh"
                 }
             }
             SystemProxyManager.shared.enable(
@@ -187,12 +191,17 @@ struct MenuView: View {
     }
 
     func toggleTun() async {
-        state.tunEnabled.toggle()
+        let newValue = !state.tunEnabled
+        if newValue && state.isRunning && !KernelManager.shared.processIsRoot() {
+            state.errorMessage = "TUN 启用失败：mihomo 未以 root 运行，请先执行 scripts/enable-tun.sh"
+            return
+        }
+        state.tunEnabled = newValue
         guard state.isRunning else { return }
         let cfg = state.apiConfig
         let api = MihomoAPI(baseURL: cfg.baseURL, secret: cfg.secret)
         do {
-            try await api.patchConfigs(["tun": ["enable": state.tunEnabled]])
+            try await api.patchConfigs(["tun": ["enable": newValue]])
             state.errorMessage = nil
         } catch {
             state.errorMessage = "TUN 切换失败：\(error.localizedDescription)"
