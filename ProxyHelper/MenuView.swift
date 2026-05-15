@@ -20,9 +20,14 @@ struct MenuView: View {
                 } icon: {
                     if state.isStarting {
                         ProgressView().controlSize(.mini)
+                    } else if state.isRunning {
+                        Circle()
+                            .fill(Color.green)
+                            .frame(width: 8, height: 8)
                     } else {
-                        Image(systemName: state.isRunning ? "circle.fill" : "circle")
-                            .foregroundStyle(state.isRunning ? Color.green : Color.secondary)
+                        Circle()
+                            .stroke(Color.secondary, lineWidth: 1)
+                            .frame(width: 8, height: 8)
                     }
                 }
             }
