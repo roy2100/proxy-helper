@@ -60,8 +60,24 @@ ProxyHelper 会从当前配置文件读取 `mixed-port`、`port`、`socks-port` 
 external-controller: 127.0.0.1:9090
 ```
 
+## TUN 模式
+
+菜单栏勾选「TUN 模式」可启用全局 TUN，使所有应用（包括不遵守系统代理设置的 CLI 工具）走代理。开关通过 mihomo `PATCH /configs` 在运行时注入 `tun.enable`，不会改动你的 yaml 文件；TUN 的其它参数（`stack`、`auto-route` 等）由配置文件自身的 `tun:` 段决定。
+
+由于 macOS 上创建 utun 接口需要 root 权限，首次使用前请执行一次：
+
+```bash
+./scripts/enable-tun.sh
+```
+
+该脚本会给 mihomo 二进制设 setuid 位，之后启动 mihomo 自动以 root 运行。
+
+注意事项：
+
+- `brew upgrade mihomo` 后 setuid 位会被覆盖，需重新执行脚本。
+- 设了 setuid 位意味着本机任何用户都能以 root 身份执行 mihomo，单用户开发机场景下可接受；多人共享机器请勿这么做。
+
 ## 说明
 
-- 使用 HTTP 代理模式，不支持 TUN 模式
 - 不打包 mihomo 内核，需用户自行安装
 - 不上 App Store，关闭沙盒
