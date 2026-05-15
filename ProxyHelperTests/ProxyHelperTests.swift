@@ -175,15 +175,7 @@ import Foundation
 // MARK: - DashboardURL
 
 @Suite struct DashboardURLTests {
-    @Test func buildsSetupURLFromAPIConfig() {
-        let url = DashboardURL.make(apiBaseURL: "http://127.0.0.1:9097", secret: "")
-
-        #expect(url.absoluteString == "https://board.zash.run.place/#/setup?port=9097&http=1")
-    }
-
-    @Test func includesEncodedSecretWhenPresent() {
-        let url = DashboardURL.make(apiBaseURL: "http://0.0.0.0:9090", secret: "token with space")
-
-        #expect(url.absoluteString == "https://board.zash.run.place/#/setup?port=9090&http=1&secret=token%20with%20space")
+    @Test func pointsToHomepage() {
+        #expect(DashboardURL.homepage.absoluteString == "https://board.zash.run.place/")
     }
 }
