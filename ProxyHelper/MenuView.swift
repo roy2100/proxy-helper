@@ -135,9 +135,13 @@ struct MenuView: View {
         state.errorMessage = nil
         defer { state.isStarting = false }
         let appState = state
-        KernelManager.shared.onUnexpectedStop = {
+        KernelManager.shared.onUnexpectedStop = { error in
             appState.isRunning = false
-            appState.errorMessage = "内核意外停止"
+            if let error {
+                appState.errorMessage = "内核重启失败：\(error.localizedDescription)"
+            } else {
+                appState.errorMessage = "内核意外停止"
+            }
         }
         KernelManager.shared.onLogLine = { line in
             appState.logLines.append(line)
