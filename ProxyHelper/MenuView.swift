@@ -84,11 +84,11 @@ struct MenuView: View {
         }
         .disabled(state.configFolderPath.isEmpty)
 
-        Button("打开数据目录") {
+        Button("打开数据文件夹") {
             NSWorkspace.shared.open(KernelManager.mihomoHome)
         }
 
-        Button("Dashboard...") {
+        Button("Dashboard") {
             let cfg = state.apiConfig
             let url = DashboardURL.make(apiBaseURL: cfg.baseURL, secret: cfg.secret)
             NSWorkspace.shared.open(url)

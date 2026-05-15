@@ -9,16 +9,21 @@ struct SettingsView: View {
             Section("mihomo 路径") {
                 HStack {
                     TextField("留空则自动检测 Homebrew 路径", text: $state.mihomoPath)
+                        .truncationMode(.middle)
                     Button("选择...") { pickFile(binding: $state.mihomoPath) }
                 }
                 Text("当前：\(state.effectiveMihomoPath.isEmpty ? "未找到，请先 brew install mihomo" : state.effectiveMihomoPath)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                    .truncationMode(.middle)
+                    .lineLimit(1)
+                    .help(state.effectiveMihomoPath)
             }
 
             Section("配置文件夹") {
                 HStack {
                     TextField("存放 .yaml 配置文件的目录", text: $state.configFolderPath)
+                        .truncationMode(.middle)
                     Button("选择...") { pickFolder(binding: $state.configFolderPath) }
                 }
                 Text("应用会自动扫描该目录下所有 .yaml / .yml 文件")
