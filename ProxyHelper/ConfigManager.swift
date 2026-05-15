@@ -90,6 +90,13 @@ final class ConfigManager {
                 appState.errorMessage = "切换配置后内核启动超时"
                 return
             }
+            if appState.tunEnabled {
+                do {
+                    try await api.patchConfigs(["tun": ["enable": true]])
+                } catch {
+                    appState.errorMessage = "TUN 启用失败：\(error.localizedDescription)"
+                }
+            }
             SystemProxyManager.shared.enable(
                 httpPort: appState.proxyPorts.http,
                 socksPort: appState.proxyPorts.socks
