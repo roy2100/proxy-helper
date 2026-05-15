@@ -90,9 +90,8 @@ struct MenuView: View {
 
         Button("Dashboard...") {
             let cfg = state.apiConfig
-            state.dashboardURL = DashboardURL.make(apiBaseURL: cfg.baseURL, secret: cfg.secret)
-            openWindow(id: "dashboard")
-            NSApp.activate(ignoringOtherApps: true)
+            let url = DashboardURL.make(apiBaseURL: cfg.baseURL, secret: cfg.secret)
+            NSWorkspace.shared.open(url)
         }
         .disabled(!state.isRunning)
 

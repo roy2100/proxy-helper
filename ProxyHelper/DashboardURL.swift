@@ -1,5 +1,4 @@
-import SwiftUI
-import WebKit
+import Foundation
 
 enum DashboardURL {
     static func make(apiBaseURL: String, secret: String) -> URL {
@@ -25,31 +24,5 @@ enum DashboardURL {
         var allowed = CharacterSet.urlQueryAllowed
         allowed.remove(charactersIn: ":#[]@!$&'()*+,;=")
         return value.addingPercentEncoding(withAllowedCharacters: allowed) ?? value
-    }
-}
-
-struct DashboardView: View {
-    @Environment(AppState.self) var state
-
-    var body: some View {
-        WebView(url: state.dashboardURL)
-            .frame(minWidth: 960, minHeight: 680)
-    }
-}
-
-private struct WebView: NSViewRepresentable {
-    let url: URL
-
-    func makeNSView(context: Context) -> WKWebView {
-        let webView = WKWebView()
-        webView.allowsBackForwardNavigationGestures = true
-        webView.load(URLRequest(url: url))
-        return webView
-    }
-
-    func updateNSView(_ webView: WKWebView, context: Context) {
-        if webView.url != url {
-            webView.load(URLRequest(url: url))
-        }
     }
 }

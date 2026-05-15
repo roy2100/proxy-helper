@@ -21,7 +21,7 @@
 	<!-- 不在 Dock 显示，纯菜单栏 app -->
 	<key>LSUIElement</key>
 	<true/>
-	<!-- 允许 WKWebView 加载 HTTP 页面及访问本地 mihomo API -->
+	<!-- 允许访问本地 mihomo API -->
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>

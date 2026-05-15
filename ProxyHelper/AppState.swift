@@ -10,7 +10,6 @@ final class AppState {
     var errorMessage: String? = nil
     var configs: [ConfigFile] = []
     var logLines: [String] = []
-    var dashboardURL: URL = DashboardURL.make(apiBaseURL: "http://127.0.0.1:9090", secret: "")
 
     // 存储属性 + didSet 确保 @Observable 能追踪变更
     var activeConfigPath: String = UserDefaults.standard.string(forKey: "activeConfigPath") ?? "" {
