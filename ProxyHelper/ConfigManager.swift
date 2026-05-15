@@ -84,6 +84,9 @@ final class ConfigManager {
             return
         }
 
+        // 让 KernelManager 在崩溃自动重启时也用新配置
+        KernelManager.shared.setCurrentConfigPath(config.path)
+
         // 配置可能改了系统代理端口，重置一次
         let ports = appState.proxyPorts
         SystemProxyManager.shared.disable()

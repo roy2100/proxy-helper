@@ -12,6 +12,9 @@ final class KernelManager {
     private let stableWindow: Duration = .seconds(60)
     private let restartBackoff: Duration = .seconds(1)
     private var stabilityTimer: Task<Void, Never>?
+    /// 热切换会让用户选择的配置文件路径与 `launch` 时的 `-f` 路径分叉。
+    /// 崩溃自动重启时按这里的最新值，而不是 launch 闭包捕获的旧值。
+    private var currentConfigPath: String?
 
     var onUnexpectedStop: (@MainActor (Error?) -> Void)?
     var onLogLine: (@MainActor (String) -> Void)?
@@ -29,7 +32,13 @@ final class KernelManager {
 
     func start(mihomoPath: String, configPath: String) throws {
         restartCount = 0
+        currentConfigPath = configPath
         try launch(mihomoPath: mihomoPath, configPath: configPath)
+    }
+
+    /// 热切换成功后调用，让崩溃恢复用新配置启动。
+    func setCurrentConfigPath(_ path: String) {
+        currentConfigPath = path
     }
 
     func stop() {
@@ -39,6 +48,7 @@ final class KernelManager {
         logReadTask = nil
         stabilityTimer?.cancel()
         stabilityTimer = nil
+        currentConfigPath = nil
         clearSavedPID()
         p.terminate()
         let pid = p.processIdentifier
@@ -56,6 +66,7 @@ final class KernelManager {
         logReadTask = nil
         stabilityTimer?.cancel()
         stabilityTimer = nil
+        currentConfigPath = nil
         clearSavedPID()
         let pid = p.processIdentifier
         p.terminate()
@@ -170,7 +181,7 @@ final class KernelManager {
                     reason: reason,
                     status: status,
                     mihomoPath: mihomoPath,
-                    configPath: configPath
+                    configPath: self.currentConfigPath ?? configPath
                 )
             }
         }
