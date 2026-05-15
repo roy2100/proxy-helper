@@ -2,8 +2,6 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(AppState.self) var state
-    @State private var httpPortText: String = ""
-    @State private var socksPortText: String = ""
 
     var body: some View {
         @Bindable var state = state
@@ -44,35 +42,11 @@ struct SettingsView: View {
                     }
                 }
             }
-
-            Section("代理端口") {
-                HStack {
-                    Text("HTTP 端口")
-                    Spacer()
-                    TextField("7890", text: $httpPortText)
-                        .frame(width: 80)
-                        .multilineTextAlignment(.trailing)
-                        .onSubmit { savePort() }
-                }
-                HStack {
-                    Text("SOCKS 端口")
-                    Spacer()
-                    TextField("7891", text: $socksPortText)
-                        .frame(width: 80)
-                        .multilineTextAlignment(.trailing)
-                        .onSubmit { savePort() }
-                }
-                Text("需与 config.yaml 中的 port / socks-port 字段保持一致")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
         }
         .formStyle(.grouped)
         .padding()
         .frame(width: 500)
         .onAppear {
-            httpPortText = "\(state.httpPort)"
-            socksPortText = "\(state.socksPort)"
             if !state.configFolderPath.isEmpty {
                 ConfigManager.shared.startWatching(folderPath: state.configFolderPath) {
                     state.configs = ConfigManager.shared.scan(folderPath: state.configFolderPath)
@@ -85,11 +59,6 @@ struct SettingsView: View {
                 state.configs = ConfigManager.shared.scan(folderPath: state.configFolderPath)
             }
         }
-    }
-
-    func savePort() {
-        if let p = Int(httpPortText), (1...65535).contains(p) { state.httpPort = p }
-        if let p = Int(socksPortText), (1...65535).contains(p) { state.socksPort = p }
     }
 
     func pickFile(binding: Binding<String>) {

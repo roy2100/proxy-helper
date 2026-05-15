@@ -28,18 +28,6 @@ final class AppState {
         set { UserDefaults.standard.set(newValue, forKey: "configFolderPath") }
     }
 
-    @ObservationIgnored
-    var httpPort: Int {
-        get { UserDefaults.standard.integer(forKey: "httpPort").nonZero ?? 7890 }
-        set { UserDefaults.standard.set(newValue, forKey: "httpPort") }
-    }
-
-    @ObservationIgnored
-    var socksPort: Int {
-        get { UserDefaults.standard.integer(forKey: "socksPort").nonZero ?? 7891 }
-        set { UserDefaults.standard.set(newValue, forKey: "socksPort") }
-    }
-
     var effectiveMihomoPath: String {
         if !mihomoPath.isEmpty { return mihomoPath }
         let candidates = [
@@ -62,13 +50,16 @@ final class AppState {
         return ConfigManager.shared.parseAPIConfig(at: activeConfigPath)
     }
 
+    var proxyPorts: (http: Int, socks: Int) {
+        guard !activeConfigPath.isEmpty else {
+            return (7890, 7891)
+        }
+        return ConfigManager.shared.parseProxyPorts(at: activeConfigPath)
+    }
+
     init() {
         configs = ConfigManager.shared.scan(folderPath: configFolderPath)
     }
-}
-
-private extension Int {
-    var nonZero: Int? { self == 0 ? nil : self }
 }
 
 struct ConfigFile: Identifiable, Hashable {

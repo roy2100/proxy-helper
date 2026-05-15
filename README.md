@@ -48,8 +48,9 @@ xattr -dr com.apple.quarantine /Applications/ProxyHelper.app
 
 1. 点击菜单栏图标 → **设置...**
 2. 选择 mihomo 配置文件夹（存放 `.yaml` 文件的目录）
-3. 确认 HTTP/SOCKS 端口与配置文件一致（默认 7890 / 7891）
-4. 回到菜单，选择配置文件 → **启动**
+3. 回到菜单，选择配置文件 → **启动**
+
+ProxyHelper 会从当前配置文件读取 `mixed-port`、`port`、`socks-port` 来设置系统代理；缺失时回退到 `7890 / 7891`。
 
 ## 速率显示
 

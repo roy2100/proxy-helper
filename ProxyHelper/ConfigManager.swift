@@ -91,8 +91,8 @@ final class ConfigManager {
                 return
             }
             SystemProxyManager.shared.enable(
-                httpPort: appState.httpPort,
-                socksPort: appState.socksPort
+                httpPort: appState.proxyPorts.http,
+                socksPort: appState.proxyPorts.socks
             )
             appState.isRunning = true
             appState.systemProxyEnabled = true
@@ -115,5 +115,33 @@ final class ConfigManager {
             port = p
         }
         return ("http://127.0.0.1:\(port)", secret)
+    }
+
+    func parseProxyPorts(at path: String) -> (http: Int, socks: Int) {
+        guard let content = try? String(contentsOfFile: path, encoding: .utf8),
+              let yaml = try? Yams.load(yaml: content) as? [String: Any] else {
+            return (7890, 7891)
+        }
+
+        if let mixedPort = yamlPortValue(yaml["mixed-port"]) {
+            return (mixedPort, mixedPort)
+        }
+
+        return (
+            yamlPortValue(yaml["port"]) ?? 7890,
+            yamlPortValue(yaml["socks-port"]) ?? 7891
+        )
+    }
+
+    private func yamlPortValue(_ value: Any?) -> Int? {
+        if let intValue = value as? Int, (1...65535).contains(intValue) {
+            return intValue
+        }
+        if let stringValue = value as? String,
+           let intValue = Int(stringValue),
+           (1...65535).contains(intValue) {
+            return intValue
+        }
+        return nil
     }
 }

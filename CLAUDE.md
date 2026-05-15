@@ -50,7 +50,9 @@ AppState（@Observable, @MainActor）
 
 ### mihomo API 连接参数
 
-`AppState.apiConfig` 计算属性从当前激活配置文件里解析 `external-controller`（取端口，主机固定用 `127.0.0.1`）和 `secret` 字段，返回 `(baseURL: String, secret: String)`。所有 `MihomoAPI` 实例都从这里取参数，不硬编码。解析逻辑在 `ConfigManager.parseAPIConfig(at:)`，不依赖完整 YAML 解析器，按行匹配顶层键值对，缺失时回退到端口 9090。
+`AppState.apiConfig` 计算属性从当前激活配置文件里解析 `external-controller`（取端口，主机固定用 `127.0.0.1`）和 `secret` 字段，返回 `(baseURL: String, secret: String)`。所有 `MihomoAPI` 实例都从这里取参数，不硬编码。解析逻辑在 `ConfigManager.parseAPIConfig(at:)`，缺失时回退到端口 9090。
+
+`AppState.proxyPorts` 从当前激活配置文件里解析系统代理端口：`mixed-port` 存在时 HTTP/SOCKS 都使用它；否则 HTTP 使用 `port`（默认 7890），SOCKS 使用 `socks-port`（默认 7891）。设置页不再提供手动代理端口配置。
 
 ### 配置文件
 
@@ -162,4 +164,4 @@ http://host:port/#/setup?hostname=ipordomain&port=9090&secret=123456
 
 - 切换配置时采用**重启内核**而非热重载（`PATCH /configs`），因为跨目录切换时热重载不可靠。
 - 崩溃自动重启最多 3 次（`maxRestarts`），仅在非正常退出（`terminationStatus != 0`）时触发。
-- `httpPort`/`socksPort` 存 UserDefaults，需与 mihomo 配置里的 `port`/`socks-port` 手动保持一致，设置页有提示。
+- 系统代理端口直接从当前 mihomo 配置读取，避免手动设置与配置文件不一致。

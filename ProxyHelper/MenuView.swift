@@ -31,7 +31,7 @@ struct MenuView: View {
         .font(.headline)
 
         if state.isRunning {
-            Text("HTTP 代理：127.0.0.1:\(String(state.httpPort))")
+            Text(proxyPortSummary)
                 .font(.caption2)
                 .foregroundStyle(.tertiary)
         }
@@ -146,8 +146,8 @@ struct MenuView: View {
                 return
             }
             SystemProxyManager.shared.enable(
-                httpPort: state.httpPort,
-                socksPort: state.socksPort
+                httpPort: state.proxyPorts.http,
+                socksPort: state.proxyPorts.socks
             )
             state.isRunning = true
             state.systemProxyEnabled = true
@@ -173,6 +173,14 @@ struct MenuView: View {
            let first = state.configs.first {
             state.activeConfigPath = first.path
         }
+    }
+
+    private var proxyPortSummary: String {
+        let ports = state.proxyPorts
+        if ports.http == ports.socks {
+            return "混合代理：127.0.0.1:\(ports.http)"
+        }
+        return "HTTP 代理：127.0.0.1:\(ports.http)  SOCKS：\(ports.socks)"
     }
 
 }

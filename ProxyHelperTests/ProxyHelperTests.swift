@@ -108,21 +108,47 @@ import Foundation
     }
 }
 
+// MARK: - ConfigManager.parseProxyPorts
+
+@Suite @MainActor struct ParseProxyPortsTests {
+    private func write(_ content: String) throws -> String {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString + ".yaml")
+        try content.write(to: url, atomically: true, encoding: .utf8)
+        return url.path
+    }
+
+    @Test func missingFileReturnsDefaultProxyPorts() {
+        let result = ConfigManager.shared.parseProxyPorts(at: "/nonexistent/path.yaml")
+
+        #expect(result.http == 7890)
+        #expect(result.socks == 7891)
+    }
+
+    @Test func parsesHttpAndSocksPorts() throws {
+        let path = try write("port: 8080\nsocks-port: 8081\n")
+        defer { try? FileManager.default.removeItem(atPath: path) }
+
+        let result = ConfigManager.shared.parseProxyPorts(at: path)
+
+        #expect(result.http == 8080)
+        #expect(result.socks == 8081)
+    }
+
+    @Test func mixedPortOverridesHttpAndSocksPorts() throws {
+        let path = try write("port: 8080\nsocks-port: 8081\nmixed-port: 10801\n")
+        defer { try? FileManager.default.removeItem(atPath: path) }
+
+        let result = ConfigManager.shared.parseProxyPorts(at: path)
+
+        #expect(result.http == 10801)
+        #expect(result.socks == 10801)
+    }
+}
+
 // MARK: - AppState
 
 @Suite @MainActor struct AppStateTests {
-    @Test func defaultHttpPort() {
-        UserDefaults.standard.removeObject(forKey: "httpPort")
-        let state = AppState()
-        #expect(state.httpPort == 7890)
-    }
-
-    @Test func defaultSocksPort() {
-        UserDefaults.standard.removeObject(forKey: "socksPort")
-        let state = AppState()
-        #expect(state.socksPort == 7891)
-    }
-
     @Test func effectiveMihomoPathFallsBackToHomebrew() {
         UserDefaults.standard.removeObject(forKey: "mihomoPath")
         let state = AppState()
