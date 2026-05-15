@@ -40,7 +40,7 @@ struct MenuView: View {
             Label(err, systemImage: "exclamationmark.triangle")
                 .font(.caption)
                 .foregroundStyle(.red)
-                .lineLimit(2)
+                .lineLimit(3)
         }
 
         Divider()
@@ -167,7 +167,7 @@ struct MenuView: View {
                         state.errorMessage = "TUN 启用失败：\(error.localizedDescription)"
                     }
                 } else {
-                    state.errorMessage = "TUN 未启用：mihomo 未以 root 运行，请先执行 scripts/enable-tun.sh"
+                    state.errorMessage = Self.tunRootHint
                 }
             }
             SystemProxyManager.shared.enable(
@@ -202,7 +202,7 @@ struct MenuView: View {
     func toggleTun() async {
         let newValue = !state.tunEnabled
         if newValue && state.isRunning && !KernelManager.shared.processIsRoot() {
-            state.errorMessage = "TUN 启用失败：mihomo 未以 root 运行，请先执行 scripts/enable-tun.sh"
+            state.errorMessage = Self.tunRootHint
             return
         }
         state.tunEnabled = newValue
@@ -216,6 +216,8 @@ struct MenuView: View {
             state.errorMessage = "TUN 切换失败：\(error.localizedDescription)"
         }
     }
+
+    static let tunRootHint = "TUN 需 root 权限：点下方「复制启用 TUN 命令」执行后，停止再启动 mihomo。"
 
     func refreshConfigs() {
         state.configs = ConfigManager.shared.scan(folderPath: state.configFolderPath)
