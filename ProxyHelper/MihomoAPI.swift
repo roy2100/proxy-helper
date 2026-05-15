@@ -29,6 +29,29 @@ struct MihomoAPI: Sendable {
         return version
     }
 
+    /// 让 mihomo 在不重启内核的情况下重新加载指定路径的配置文件。
+    func reloadConfig(path: String) async throws {
+        guard let url = URL(string: "\(baseURL)/configs?force=true") else {
+            throw MihomoAPIError.invalidURL
+        }
+        var req = URLRequest(url: url, timeoutInterval: 10)
+        req.httpMethod = "PUT"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if !secret.isEmpty {
+            req.setValue("Bearer \(secret)", forHTTPHeaderField: "Authorization")
+        }
+        req.httpBody = try JSONSerialization.data(withJSONObject: ["path": path])
+
+        let (data, response) = try await URLSession.shared.data(for: req)
+        guard let http = response as? HTTPURLResponse else {
+            throw MihomoAPIError.badResponse(status: -1, body: "")
+        }
+        guard (200..<300).contains(http.statusCode) else {
+            let bodyText = String(data: data, encoding: .utf8) ?? ""
+            throw MihomoAPIError.badResponse(status: http.statusCode, body: bodyText)
+        }
+    }
+
     func patchConfigs(_ body: [String: Any]) async throws {
         guard let url = URL(string: "\(baseURL)/configs") else {
             throw MihomoAPIError.invalidURL

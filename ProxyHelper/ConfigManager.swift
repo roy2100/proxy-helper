@@ -64,51 +64,44 @@ final class ConfigManager {
         appState: AppState,
         restart: Bool = true
     ) async {
+        let previousPath = appState.activeConfigPath
         appState.activeConfigPath = config.path
 
         guard appState.isRunning && restart else { return }
 
-        SystemProxyManager.shared.disable()
-        appState.systemProxyEnabled = false
-        await KernelManager.shared.stopAndWait()
-        appState.isRunning = false
-
-        appState.isStarting = true
-        defer { appState.isStarting = false }
+        // 旧 API 配置（mihomo 还在监听旧端口/secret）
+        let apiCfg = ConfigManager.shared.parseAPIConfig(at: previousPath)
+        let api = MihomoAPI(baseURL: apiCfg.baseURL, secret: apiCfg.secret)
 
         do {
-            try KernelManager.shared.start(
-                mihomoPath: appState.effectiveMihomoPath,
-                configPath: config.path
+            try await api.reloadConfig(path: config.path)
+        } catch {
+            appState.errorMessage = "切换配置失败：\(error.localizedDescription)"
+            appState.activeConfigPath = previousPath
+            return
+        }
+
+        // 配置可能改了系统代理端口，重置一次
+        let ports = appState.proxyPorts
+        SystemProxyManager.shared.disable()
+        SystemProxyManager.shared.enable(httpPort: ports.http, socksPort: ports.socks)
+        appState.systemProxyEnabled = true
+
+        // TUN 状态在 reload 后会被新配置覆盖，按用户偏好重新应用
+        if appState.tunEnabled, KernelManager.shared.processIsRoot() {
+            let newApi = MihomoAPI(
+                baseURL: appState.apiConfig.baseURL,
+                secret: appState.apiConfig.secret
             )
-            let apiCfg = appState.apiConfig
-            let api = MihomoAPI(baseURL: apiCfg.baseURL, secret: apiCfg.secret)
-            guard let version = await api.waitUntilReady() else {
-                appState.errorMessage = "切换配置后内核启动超时"
+            do {
+                try await newApi.patchConfigs(["tun": ["enable": true]])
+            } catch {
+                appState.errorMessage = "TUN 启用失败：\(error.localizedDescription)"
                 return
             }
-            appState.kernelVersion = version
-            if appState.tunEnabled {
-                if KernelManager.shared.processIsRoot() {
-                    do {
-                        try await api.patchConfigs(["tun": ["enable": true]])
-                    } catch {
-                        appState.errorMessage = "TUN 启用失败：\(error.localizedDescription)"
-                    }
-                } else {
-                    appState.errorMessage = MenuView.tunRootHint
-                }
-            }
-            SystemProxyManager.shared.enable(
-                httpPort: appState.proxyPorts.http,
-                socksPort: appState.proxyPorts.socks
-            )
-            appState.isRunning = true
-            appState.systemProxyEnabled = true
-            appState.errorMessage = nil
-        } catch {
-            appState.errorMessage = error.localizedDescription
         }
+
+        appState.errorMessage = nil
     }
 
     func parseAPIConfig(at path: String) -> (baseURL: String, secret: String) {

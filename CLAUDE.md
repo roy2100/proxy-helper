@@ -185,6 +185,6 @@ http://host:port/#/setup?hostname=ipordomain&port=9090&secret=123456
 
 ## 关键设计决策
 
-- 切换配置时采用**重启内核**而非热重载（`PATCH /configs`），因为跨目录切换时热重载不可靠。
+- 切换配置时采用 **`PUT /configs?force=true` 热重载**而非重启内核，因为所有配置都在同一文件夹下，热重载可靠且没有端口释放的竞争。仅当用户在设置里改变配置文件夹（跨目录）时才走重启路径。
 - 崩溃自动重启最多 3 次（`maxRestarts`），仅在非正常退出（`terminationStatus != 0`）时触发。
 - 系统代理端口直接从当前 mihomo 配置读取，避免手动设置与配置文件不一致。
