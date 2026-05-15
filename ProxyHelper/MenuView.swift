@@ -178,6 +178,14 @@ struct MenuView: View {
                 httpPort: state.proxyPorts.http,
                 socksPort: state.proxyPorts.socks
             )
+            NetworkChangeMonitor.shared.onChange = {
+                guard appState.isRunning, appState.systemProxyEnabled else { return }
+                SystemProxyManager.shared.enable(
+                    httpPort: appState.proxyPorts.http,
+                    socksPort: appState.proxyPorts.socks
+                )
+            }
+            NetworkChangeMonitor.shared.start()
             state.isRunning = true
             state.systemProxyEnabled = true
             state.errorMessage = nil
@@ -190,6 +198,7 @@ struct MenuView: View {
     func stopKernel() async {
         KernelManager.shared.onUnexpectedStop = nil
         KernelManager.shared.onLogLine = nil
+        NetworkChangeMonitor.shared.stop()
         SystemProxyManager.shared.disable()
         state.systemProxyEnabled = false
         KernelManager.shared.stop()

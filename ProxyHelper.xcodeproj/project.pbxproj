@@ -21,6 +21,7 @@
 		CAFE000000000000000000A3 /* Yams in Frameworks */ = {isa = PBXBuildFile; productRef = CAFE000000000000000000A2 /* Yams */; };
 		CAFE000000000000000000B1 /* LogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAFE000000000000000000B0 /* LogView.swift */; };
 		CAFE000000000000000000C1 /* DashboardURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAFE000000000000000000C0 /* DashboardURL.swift */; };
+		CAFE000000000000000000D1 /* NetworkChangeMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAFE000000000000000000D0 /* NetworkChangeMonitor.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -52,6 +53,7 @@
 		7521A1B2C3D4E5F6A7B8007C /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
 		CAFE000000000000000000B0 /* LogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogView.swift; sourceTree = "<group>"; };
 		CAFE000000000000000000C0 /* DashboardURL.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardURL.swift; sourceTree = "<group>"; };
+		CAFE000000000000000000D0 /* NetworkChangeMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkChangeMonitor.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -106,6 +108,7 @@
 				7521A1B2C3D4E5F6A7B8007C /* Utilities.swift */,
 				CAFE000000000000000000B0 /* LogView.swift */,
 				CAFE000000000000000000C0 /* DashboardURL.swift */,
+				CAFE000000000000000000D0 /* NetworkChangeMonitor.swift */,
 					7521A1B2C3D4E5F6A7B80038 /* Assets.xcassets */,
 				7521A1B2C3D4E5F6A7B80039 /* ProxyHelper.entitlements */,
 				7521A1B2C3D4E5F6A7B8003A /* Info.plist */,
@@ -229,6 +232,7 @@
 				7521A1B2C3D4E5F6A7B8007D /* Utilities.swift in Sources */,
 				CAFE000000000000000000B1 /* LogView.swift in Sources */,
 				CAFE000000000000000000C1 /* DashboardURL.swift in Sources */,
+				CAFE000000000000000000D1 /* NetworkChangeMonitor.swift in Sources */,
 				);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
