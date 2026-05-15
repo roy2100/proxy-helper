@@ -5,51 +5,52 @@ struct MenuView: View {
     @Environment(\.openWindow) var openWindow
 
     var body: some View {
-        // 状态行
-        Label {
-            Text(state.isStarting ? "启动中..." : state.isRunning ? "运行中" : "已停止")
-        } icon: {
-            if state.isStarting {
-                ProgressView().controlSize(.mini)
-            } else {
-                Image(systemName: state.isRunning ? "circle.fill" : "circle")
-                    .foregroundStyle(state.isRunning ? Color.green : Color.secondary)
+        Section("状态") {
+            Label {
+                Text(state.isStarting ? "启动中..." : state.isRunning ? "运行中" : "已停止")
+            } icon: {
+                if state.isStarting {
+                    ProgressView().controlSize(.mini)
+                } else {
+                    Image(systemName: state.isRunning ? "circle.fill" : "circle")
+                        .foregroundStyle(state.isRunning ? Color.green : Color.secondary)
+                }
             }
-        }
-        .font(.headline)
+            .font(.headline)
 
-        if state.isRunning {
-            Text(proxyPortSummary)
-                .font(.caption2)
-                .foregroundStyle(.tertiary)
-            if let version = state.kernelVersion {
-                Text("内核：\(version)")
+            if state.isRunning {
+                Text(proxyPortSummary)
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
+                if let version = state.kernelVersion {
+                    Text("内核：\(version)")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                }
+            }
+
+            if let err = state.errorMessage {
+                Label(err, systemImage: "exclamationmark.triangle")
+                    .font(.caption)
+                    .foregroundStyle(.red)
+                    .lineLimit(3)
             }
         }
 
-        if let err = state.errorMessage {
-            Label(err, systemImage: "exclamationmark.triangle")
-                .font(.caption)
-                .foregroundStyle(.red)
-                .lineLimit(3)
-        }
-
-        Divider()
-
-        if state.configs.isEmpty {
-            Text("未找到配置文件")
-                .foregroundStyle(.secondary)
-        } else {
-            ForEach(state.configs) { config in
-                Button {
-                    Task { await switchTo(config) }
-                } label: {
-                    if config.path == state.activeConfigPath {
-                        Label(config.name, systemImage: "checkmark")
-                    } else {
-                        Text(config.name)
+        Section("配置文件") {
+            if state.configs.isEmpty {
+                Text("未找到配置文件")
+                    .foregroundStyle(.secondary)
+            } else {
+                ForEach(state.configs) { config in
+                    Button {
+                        Task { await switchTo(config) }
+                    } label: {
+                        if config.path == state.activeConfigPath {
+                            Label(config.name, systemImage: "checkmark")
+                        } else {
+                            Text(config.name)
+                        }
                     }
                 }
             }
