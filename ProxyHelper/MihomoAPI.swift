@@ -22,6 +22,28 @@ struct MihomoAPI: Sendable {
         return (try? await URLSession.shared.data(for: req)) != nil
     }
 
+    func patchConfigs(_ body: [String: Any]) async throws {
+        guard let url = URL(string: "\(baseURL)/configs") else {
+            throw MihomoAPIError.invalidURL
+        }
+        var req = URLRequest(url: url, timeoutInterval: 5)
+        req.httpMethod = "PATCH"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if !secret.isEmpty {
+            req.setValue("Bearer \(secret)", forHTTPHeaderField: "Authorization")
+        }
+        req.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+        let (data, response) = try await URLSession.shared.data(for: req)
+        guard let http = response as? HTTPURLResponse else {
+            throw MihomoAPIError.badResponse(status: -1, body: "")
+        }
+        guard (200..<300).contains(http.statusCode) else {
+            let bodyText = String(data: data, encoding: .utf8) ?? ""
+            throw MihomoAPIError.badResponse(status: http.statusCode, body: bodyText)
+        }
+    }
+
     func trafficStream() -> AsyncStream<(upload: Int64, download: Int64)> {
         AsyncStream { continuation in
             guard let url = URL(string: baseURL.replacingOccurrences(of: "http", with: "ws") + "/traffic") else {
@@ -58,4 +80,19 @@ struct MihomoAPI: Sendable {
 private struct TrafficData: Decodable {
     let up: Int64
     let down: Int64
+}
+
+enum MihomoAPIError: LocalizedError {
+    case invalidURL
+    case badResponse(status: Int, body: String)
+
+    var errorDescription: String? {
+        switch self {
+        case .invalidURL:
+            return "无效的 API 地址"
+        case .badResponse(let status, let body):
+            let snippet = body.prefix(200)
+            return "API 返回 \(status)：\(snippet)"
+        }
+    }
 }
