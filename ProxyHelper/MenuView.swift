@@ -10,22 +10,19 @@ struct MenuView: View {
 
     var body: some View {
         // 状态行
-        Label {
-            HStack(spacing: 6) {
-                Text(state.isStarting ? "启动中..." : state.isRunning ? "运行中" : "已停止")
-                if !appVersion.isEmpty {
-                    Text("v\(appVersion)")
-                        .font(.caption)
-                        .foregroundStyle(.tertiary)
-                }
-            }
-        } icon: {
+        HStack(spacing: 6) {
             if state.isStarting {
                 ProgressView().controlSize(.mini)
             } else {
                 Circle()
                     .fill(state.isRunning ? Color.green : Color.secondary)
                     .frame(width: 8, height: 8)
+            }
+            Text(state.isStarting ? "启动中..." : state.isRunning ? "运行中" : "已停止")
+            if !appVersion.isEmpty {
+                Text("v\(appVersion)")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
             }
         }
         .font(.headline)
