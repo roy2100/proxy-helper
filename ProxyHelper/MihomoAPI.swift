@@ -29,8 +29,10 @@ struct MihomoAPI: Sendable {
         return version
     }
 
-    /// 让 mihomo 在不重启内核的情况下重新加载指定路径的配置文件。
-    func reloadConfig(path: String) async throws {
+    /// 让 mihomo 在不重启内核的情况下重新加载配置。
+    /// 当配置不在 mihomo `-d` home 目录下时（如 iCloud Documents），mihomo 会拒绝 path 形式，
+    /// 此时必须把 YAML 内容当作 `payload` 直接传入。
+    func reloadConfig(path: String, payload: String? = nil) async throws {
         guard let url = URL(string: "\(baseURL)/configs?force=true") else {
             throw MihomoAPIError.invalidURL
         }
@@ -40,7 +42,11 @@ struct MihomoAPI: Sendable {
         if !secret.isEmpty {
             req.setValue("Bearer \(secret)", forHTTPHeaderField: "Authorization")
         }
-        req.httpBody = try JSONSerialization.data(withJSONObject: ["path": path])
+        var body: [String: String] = ["path": path]
+        if let payload {
+            body["payload"] = payload
+        }
+        req.httpBody = try JSONSerialization.data(withJSONObject: body)
 
         let (data, response) = try await URLSession.shared.data(for: req)
         guard let http = response as? HTTPURLResponse else {

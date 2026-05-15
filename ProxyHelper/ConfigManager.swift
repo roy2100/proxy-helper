@@ -73,8 +73,11 @@ final class ConfigManager {
         let apiCfg = ConfigManager.shared.parseAPIConfig(at: previousPath)
         let api = MihomoAPI(baseURL: apiCfg.baseURL, secret: apiCfg.secret)
 
+        // 配置可能不在 mihomo home 目录下（如 iCloud），用 payload 形式绕过路径白名单
+        let payload = try? String(contentsOfFile: config.path, encoding: .utf8)
+
         do {
-            try await api.reloadConfig(path: config.path)
+            try await api.reloadConfig(path: config.path, payload: payload)
         } catch {
             appState.errorMessage = "切换配置失败：\(error.localizedDescription)"
             appState.activeConfigPath = previousPath
