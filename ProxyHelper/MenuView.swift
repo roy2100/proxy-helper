@@ -157,6 +157,13 @@ struct MenuView: View {
                 KernelManager.shared.onUnexpectedStop = nil
                 return
             }
+            if state.tunEnabled {
+                do {
+                    try await api.patchConfigs(["tun": ["enable": true]])
+                } catch {
+                    state.errorMessage = "TUN 启用失败：\(error.localizedDescription)"
+                }
+            }
             SystemProxyManager.shared.enable(
                 httpPort: state.proxyPorts.http,
                 socksPort: state.proxyPorts.socks
