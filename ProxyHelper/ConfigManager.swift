@@ -85,12 +85,11 @@ final class ConfigManager {
             )
             let apiCfg = appState.apiConfig
             let api = MihomoAPI(baseURL: apiCfg.baseURL, secret: apiCfg.secret)
-            let ready = await api.waitUntilReady()
-            guard ready else {
+            guard let version = await api.waitUntilReady() else {
                 appState.errorMessage = "切换配置后内核启动超时"
                 return
             }
-            appState.kernelVersion = await api.fetchVersion()
+            appState.kernelVersion = version
             if appState.tunEnabled {
                 if KernelManager.shared.processIsRoot() {
                     do {

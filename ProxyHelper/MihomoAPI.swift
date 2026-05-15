@@ -4,22 +4,14 @@ struct MihomoAPI: Sendable {
     let baseURL: String
     let secret: String
 
-    func waitUntilReady(timeout: TimeInterval = 60) async -> Bool {
+    /// 轮询 `/version` 直到就绪。成功时返回内核版本，超时返回 nil。
+    func waitUntilReady(timeout: TimeInterval = 60) async -> String? {
         let deadline = Date().addingTimeInterval(timeout)
         while Date() < deadline {
-            if await checkHealth() { return true }
+            if let version = await fetchVersion() { return version }
             try? await Task.sleep(for: .milliseconds(300))
         }
-        return false
-    }
-
-    func checkHealth() async -> Bool {
-        guard let url = URL(string: "\(baseURL)/version") else { return false }
-        var req = URLRequest(url: url, timeoutInterval: 2)
-        if !secret.isEmpty {
-            req.setValue("Bearer \(secret)", forHTTPHeaderField: "Authorization")
-        }
-        return (try? await URLSession.shared.data(for: req)) != nil
+        return nil
     }
 
     func fetchVersion() async -> String? {

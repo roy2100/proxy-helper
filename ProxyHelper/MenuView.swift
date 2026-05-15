@@ -158,14 +158,13 @@ struct MenuView: View {
             )
             let cfg = state.apiConfig
             let api = MihomoAPI(baseURL: cfg.baseURL, secret: cfg.secret)
-            let ready = await api.waitUntilReady()
-            guard ready else {
+            guard let version = await api.waitUntilReady() else {
                 state.errorMessage = "内核启动超时"
                 KernelManager.shared.stop()
                 KernelManager.shared.onUnexpectedStop = nil
                 return
             }
-            state.kernelVersion = await api.fetchVersion()
+            state.kernelVersion = version
             if state.tunEnabled {
                 if KernelManager.shared.processIsRoot() {
                     do {
