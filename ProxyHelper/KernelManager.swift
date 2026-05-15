@@ -86,7 +86,9 @@ final class KernelManager {
 
         for (name, port) in ConfigManager.shared.parseRequiredPorts(at: configPath) {
             if isLocalTCPPortInUse(port) {
-                throw KernelError.portInUse(name: name, port: port)
+                let proc = processOnLocalTCPPort(port)
+                let occupant = proc.map { "\($0.name) (pid \($0.pid))" }
+                throw KernelError.portInUse(name: name, port: port, occupant: occupant)
             }
         }
 
@@ -189,7 +191,7 @@ enum KernelError: LocalizedError {
     case binaryNotFound
     case binaryNotExecutable(path: String)
     case configNotFound(path: String)
-    case portInUse(name: String, port: Int)
+    case portInUse(name: String, port: Int, occupant: String?)
 
     var errorDescription: String? {
         switch self {
@@ -199,7 +201,10 @@ enum KernelError: LocalizedError {
             return "文件不可执行：\(path)"
         case .configNotFound(let path):
             return "配置文件不存在：\(path)"
-        case .portInUse(let name, let port):
+        case .portInUse(let name, let port, let occupant):
+            if let occupant {
+                return "端口 \(port)（\(name)）被 \(occupant) 占用，请关闭占用进程或修改配置端口"
+            }
             return "端口 \(port)（\(name)）已被占用，请关闭占用进程或修改配置端口"
         }
     }
