@@ -48,6 +48,30 @@ final class KernelManager {
         }
     }
 
+    /// 同步等到 mihomo 真正退出（含端口释放）才返回。用于"停止后立即重启"的场景。
+    func stopAndWait(timeout: Duration = .seconds(3)) async {
+        guard let p = process else { return }
+        process = nil
+        logReadTask?.cancel()
+        logReadTask = nil
+        stabilityTimer?.cancel()
+        stabilityTimer = nil
+        clearSavedPID()
+        let pid = p.processIdentifier
+        p.terminate()
+
+        let clock = ContinuousClock()
+        let deadline = clock.now.advanced(by: timeout)
+        while p.isRunning && clock.now < deadline {
+            try? await Task.sleep(for: .milliseconds(50))
+        }
+        if p.isRunning {
+            kill(pid, SIGKILL)
+            // 给内核一点时间收回 socket
+            try? await Task.sleep(for: .milliseconds(100))
+        }
+    }
+
     func processIsRoot() -> Bool {
         guard let p = process, p.isRunning else { return false }
         let task = Process()

@@ -70,10 +70,8 @@ final class ConfigManager {
 
         SystemProxyManager.shared.disable()
         appState.systemProxyEnabled = false
-        KernelManager.shared.stop()
+        await KernelManager.shared.stopAndWait()
         appState.isRunning = false
-
-        try? await Task.sleep(for: .milliseconds(500))
 
         appState.isStarting = true
         defer { appState.isStarting = false }
