@@ -16,6 +16,10 @@ final class AppState {
         didSet { UserDefaults.standard.set(activeConfigPath, forKey: "activeConfigPath") }
     }
 
+    var tunEnabled: Bool = UserDefaults.standard.bool(forKey: "tunEnabled") {
+        didSet { UserDefaults.standard.set(tunEnabled, forKey: "tunEnabled") }
+    }
+
     @ObservationIgnored
     var mihomoPath: String {
         get { UserDefaults.standard.string(forKey: "mihomoPath") ?? "" }
