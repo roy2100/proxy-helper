@@ -25,22 +25,6 @@ struct SettingsView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
-                if !state.configFolderPath.isEmpty {
-                    if state.configs.isEmpty {
-                        Text("未找到配置文件").font(.caption).foregroundStyle(.red)
-                    } else {
-                        ForEach(state.configs) { c in
-                            HStack {
-                                Image(systemName: "doc.text").foregroundStyle(.secondary)
-                                Text(c.name).font(.caption)
-                                Spacer()
-                                Text(c.modifiedAt, style: .relative)
-                                    .font(.caption2).foregroundStyle(.tertiary)
-                            }
-                        }
-                    }
-                }
-
                 Text("更改配置文件夹后需重启应用生效")
                     .font(.caption)
                     .foregroundStyle(.secondary)
