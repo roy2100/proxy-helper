@@ -31,6 +31,11 @@ struct MenuView: View {
             Text(proxyPortSummary)
                 .font(.caption2)
                 .foregroundStyle(.tertiary)
+            if let version = state.kernelVersion {
+                Text("内核：\(version)")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+            }
         }
 
         if let err = state.errorMessage {
@@ -160,6 +165,7 @@ struct MenuView: View {
                 KernelManager.shared.onUnexpectedStop = nil
                 return
             }
+            state.kernelVersion = await api.fetchVersion()
             if state.tunEnabled {
                 if KernelManager.shared.processIsRoot() {
                     do {
@@ -200,6 +206,7 @@ struct MenuView: View {
         state.systemProxyEnabled = false
         KernelManager.shared.stop()
         state.isRunning = false
+        state.kernelVersion = nil
     }
 
     func copyEnableTunCommand() {

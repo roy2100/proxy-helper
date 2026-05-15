@@ -90,6 +90,7 @@ final class ConfigManager {
                 appState.errorMessage = "切换配置后内核启动超时"
                 return
             }
+            appState.kernelVersion = await api.fetchVersion()
             if appState.tunEnabled {
                 if KernelManager.shared.processIsRoot() {
                     do {

@@ -22,6 +22,21 @@ struct MihomoAPI: Sendable {
         return (try? await URLSession.shared.data(for: req)) != nil
     }
 
+    func fetchVersion() async -> String? {
+        guard let url = URL(string: "\(baseURL)/version") else { return nil }
+        var req = URLRequest(url: url, timeoutInterval: 2)
+        if !secret.isEmpty {
+            req.setValue("Bearer \(secret)", forHTTPHeaderField: "Authorization")
+        }
+        guard let (data, _) = try? await URLSession.shared.data(for: req),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let version = json["version"] as? String,
+              !version.isEmpty else {
+            return nil
+        }
+        return version
+    }
+
     func patchConfigs(_ body: [String: Any]) async throws {
         guard let url = URL(string: "\(baseURL)/configs") else {
             throw MihomoAPIError.invalidURL
