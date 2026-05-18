@@ -16,7 +16,7 @@ struct MenuView: View {
                 }
                 if let version = state.kernelVersion {
                     Button {
-                        NSWorkspace.shared.open(DashboardURL.homepage)
+                        revealMihomoBinary()
                     } label: {
                         Text("内核：\(version)")
                     }
@@ -204,6 +204,13 @@ struct MenuView: View {
         let pb = NSPasteboard.general
         pb.clearContents()
         pb.setString(address, forType: .string)
+    }
+
+    func revealMihomoBinary() {
+        let path = state.effectiveMihomoPath
+        guard !path.isEmpty else { return }
+        let resolved = (path as NSString).resolvingSymlinksInPath
+        NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: resolved)])
     }
 
     func copyEnableTunCommand() {
