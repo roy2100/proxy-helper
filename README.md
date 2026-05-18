@@ -1,6 +1,16 @@
+<div align="center">
+
+<img src="ProxyHelper/Assets.xcassets/AppIcon.appiconset/icon_256.png" width="160" alt="ProxyHelper 图标" />
+
 # ProxyHelper
 
-macOS 菜单栏应用，控制本地 mihomo 内核的启动与停止，自动设置/清除系统 HTTP/SOCKS 代理。
+**macOS 菜单栏应用，一键控制 mihomo 内核与系统代理。**
+
+</div>
+
+<p align="center">
+  <img src="proxy_helper.png" width="320" alt="ProxyHelper 菜单栏截图" />
+</p>
 
 ## 功能
 
