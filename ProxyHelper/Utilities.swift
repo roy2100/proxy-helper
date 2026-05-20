@@ -8,6 +8,11 @@ func isLocalTCPPortInUse(_ port: Int) -> Bool {
     guard fd >= 0 else { return false }
     defer { close(fd) }
 
+    // SO_REUSEADDR 让探测行为与 mihomo 绑定时一致：
+    // TIME_WAIT 不算占用，只有真正有进程 LISTEN 才返回 true。
+    var reuse: Int32 = 1
+    setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &reuse, socklen_t(MemoryLayout<Int32>.size))
+
     var addr = sockaddr_in()
     addr.sin_len = UInt8(MemoryLayout<sockaddr_in>.size)
     addr.sin_family = sa_family_t(AF_INET)
