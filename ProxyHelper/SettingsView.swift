@@ -23,6 +23,7 @@ private struct GeneralPane: View {
                     HStack {
                         TextField("留空则自动检测 Homebrew 路径", text: $state.mihomoPath)
                             .truncationMode(.middle)
+                            .lineLimit(1)
                         Button("选择…") { pickFile() }
                     }
                 }
