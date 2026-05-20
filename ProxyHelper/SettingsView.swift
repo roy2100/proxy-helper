@@ -18,7 +18,6 @@ struct SettingsView: View {
             }
         }
         .frame(width: 620, height: 300)
-        .containerBackground(.ultraThinMaterial, for: .window)
     }
 }
 
