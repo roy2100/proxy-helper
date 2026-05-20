@@ -8,6 +8,7 @@ struct SettingsView: View {
             }
         }
         .frame(width: 500, height: 300)
+        .containerBackground(.ultraThinMaterial, for: .window)
     }
 }
 
