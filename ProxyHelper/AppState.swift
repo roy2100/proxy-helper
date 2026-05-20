@@ -10,7 +10,7 @@ final class AppState {
     var systemProxyEnabled: Bool = false
     var errorMessage: String? = nil
     var configs: [ConfigFile] = []
-    var logLines: [String] = []
+    var logEntries: [LogEntry] = []
     var kernelVersion: String? = nil
 
     // 存储属性 + didSet 确保 @Observable 能追踪变更

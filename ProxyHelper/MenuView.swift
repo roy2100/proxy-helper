@@ -142,9 +142,10 @@ struct MenuView: View {
             }
         }
         KernelManager.shared.onLogLine = { line in
-            appState.logLines.append(line)
-            if appState.logLines.count > 2000 {
-                appState.logLines.removeFirst(appState.logLines.count - 2000)
+            let entry = LogEntry.parse(line)
+            appState.logEntries.append(entry)
+            if appState.logEntries.count > 2000 {
+                appState.logEntries.removeFirst(appState.logEntries.count - 2000)
             }
         }
         do {
