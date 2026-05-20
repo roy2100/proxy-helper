@@ -22,7 +22,6 @@ private struct GeneralPane: View {
                 LabeledContent("路径") {
                     HStack {
                         TextField("留空则自动检测 Homebrew 路径", text: $state.mihomoPath)
-                            .truncationMode(.middle)
                             .lineLimit(1)
                         Button("选择…") { pickFile() }
                     }
@@ -48,7 +47,7 @@ private struct GeneralPane: View {
                 LabeledContent("目录") {
                     HStack {
                         TextField("存放 .yaml 配置文件的目录", text: $state.configFolderPath)
-                            .truncationMode(.middle)
+                            .lineLimit(1)
                         Button("选择…") { pickFolder() }
                     }
                 }
