@@ -7,7 +7,7 @@ struct SettingsView: View {
                 GeneralPane()
             }
         }
-        .frame(width: 500, height: 300)
+        .frame(width: 620, height: 300)
         .containerBackground(.ultraThinMaterial, for: .window)
     }
 }
