@@ -1,5 +1,15 @@
 import SwiftUI
 
+private struct FixedLabelStyle: LabeledContentStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        HStack(alignment: .firstTextBaseline) {
+            configuration.label
+                .frame(width: 120, alignment: .leading)
+            configuration.content
+        }
+    }
+}
+
 struct SettingsView: View {
     var body: some View {
         TabView {
@@ -59,6 +69,7 @@ private struct GeneralPane: View {
             }
         }
         .formStyle(.grouped)
+        .labeledContentStyle(FixedLabelStyle())
         .onAppear {
             guard !state.configFolderPath.isEmpty else { return }
             ConfigManager.shared.startWatching(folderPath: state.configFolderPath) {
