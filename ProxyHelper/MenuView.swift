@@ -109,6 +109,11 @@ struct MenuView: View {
         }
         .keyboardShortcut(",", modifiers: .command)
 
+        Button("关于 ProxyHelper") {
+            NSApp.activate(ignoringOtherApps: true)
+            NSApp.orderFrontStandardAboutPanel(nil)
+        }
+
         Button("退出") { NSApplication.shared.terminate(nil) }
             .keyboardShortcut("q", modifiers: .command)
     }
