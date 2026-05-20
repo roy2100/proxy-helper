@@ -193,7 +193,7 @@ struct MenuView: View {
         NetworkChangeMonitor.shared.stop()
         SystemProxyManager.shared.disable()
         state.systemProxyEnabled = false
-        KernelManager.shared.stop()
+        await KernelManager.shared.stopAndWait()
         state.isRunning = false
         state.kernelVersion = nil
     }
