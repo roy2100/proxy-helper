@@ -6,7 +6,7 @@ struct MenuView: View {
 
     var body: some View {
         Section("状态") {
-            Text(state.isStarting ? "启动中..." : state.isRunning ? "运行中" : "已停止")
+            Text(state.isStarting ? "启动中..." : state.isStopping ? "停止中..." : state.isRunning ? "运行中" : "已停止")
 
             if state.isRunning {
                 Button {
@@ -32,10 +32,11 @@ struct MenuView: View {
                 }
             }
 
-            if state.isRunning {
+            if state.isRunning || state.isStopping {
                 Button("停止") {
                     Task { await stopKernel() }
                 }
+                .disabled(state.isStopping)
             } else {
                 Button("启动") {
                     Task { await startKernel() }
@@ -188,6 +189,9 @@ struct MenuView: View {
     }
 
     func stopKernel() async {
+        guard !state.isStopping else { return }
+        state.isStopping = true
+        defer { state.isStopping = false }
         KernelManager.shared.onUnexpectedStop = nil
         KernelManager.shared.onLogLine = nil
         NetworkChangeMonitor.shared.stop()

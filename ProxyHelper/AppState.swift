@@ -6,6 +6,7 @@ import Observation
 final class AppState {
     var isRunning: Bool = false
     var isStarting: Bool = false
+    var isStopping: Bool = false
     var systemProxyEnabled: Bool = false
     var errorMessage: String? = nil
     var configs: [ConfigFile] = []
