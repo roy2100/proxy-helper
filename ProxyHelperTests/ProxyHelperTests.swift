@@ -241,6 +241,9 @@ import Foundation
         }
         let port = Int(UInt16(bigEndian: actual.sin_port))
 
+        // connect() 检测需要 socket 处于 LISTEN 状态
+        listen(holder, 1)
+
         #expect(isLocalTCPPortInUse(port) == true)
     }
 }
