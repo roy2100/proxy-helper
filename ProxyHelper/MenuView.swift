@@ -5,112 +5,75 @@ struct MenuView: View {
     @Environment(\.openWindow) var openWindow
 
     var body: some View {
-        Section("状态") {
-            Text(state.isStarting ? "启动中..." : state.isStopping ? "停止中..." : state.isRunning ? "运行中" : "已停止")
+        VStack(alignment: .leading, spacing: 0) {
+            // ── 状态 ──────────────────────────────────────────
+            MenuSectionHeader("状态")
+            MenuLabel(state.isStarting ? "启动中..." : state.isStopping ? "停止中..." : state.isRunning ? "运行中" : "已停止")
 
             if state.isRunning {
-                Button {
-                    copyProxyAddress()
-                } label: {
-                    Text(proxyPortSummary)
-                }
+                MenuRow(proxyPortSummary) { copyProxyAddress() }
                 if let version = state.kernelVersion {
-                    Button {
-                        revealMihomoBinary()
-                    } label: {
-                        Text("内核：\(version)")
-                    }
+                    MenuRow("内核：\(version)") { revealMihomoBinary() }
                 }
             }
-
             if let err = state.errorMessage {
-                Button(role: .destructive) {
+                MenuRow(err, destructive: true) {
                     openWindow(id: "logs")
                     NSApp.activate(ignoringOtherApps: true)
-                } label: {
-                    Label(err, systemImage: "exclamationmark.triangle")
                 }
             }
-
             if state.isRunning || state.isStopping {
-                Button("停止") {
-                    Task { await stopKernel() }
-                }
-                .disabled(state.isStopping)
+                MenuRow("停止", disabled: state.isStopping) { Task { await stopKernel() } }
             } else {
-                Button("启动") {
-                    Task { await startKernel() }
-                }
-                .disabled(state.activeConfigPath.isEmpty || state.isStarting)
+                MenuRow("启动", disabled: state.activeConfigPath.isEmpty || state.isStarting) { Task { await startKernel() } }
             }
-        }
 
-        Section("配置文件") {
+            MenuDivider()
+
+            // ── 配置文件 ───────────────────────────────────────
             if state.configs.isEmpty {
-                Text("未找到配置文件")
-                    .foregroundStyle(.secondary)
+                MenuLabel("未找到配置文件")
             } else {
                 ForEach(state.configs) { config in
-                    Button {
+                    MenuRow(config.name, checkmark: config.path == state.activeConfigPath) {
                         Task { await switchTo(config) }
-                    } label: {
-                        if config.path == state.activeConfigPath {
-                            Label(config.name, systemImage: "checkmark")
-                        } else {
-                            Text(config.name)
-                        }
                     }
                 }
             }
-        }
 
-        Divider()
+            MenuDivider()
 
-        Button {
-            Task { await toggleTun() }
-        } label: {
-            if state.tunEnabled {
-                Label("TUN 模式", systemImage: "checkmark")
-            } else {
-                Text("TUN 模式")
+            // ── TUN ────────────────────────────────────────────
+            MenuRow("TUN 模式", checkmark: state.tunEnabled) { Task { await toggleTun() } }
+            MenuRow("复制启用 TUN 命令") { copyEnableTunCommand() }
+
+            MenuDivider()
+
+            // ── 工具 ───────────────────────────────────────────
+            MenuRow("打开配置文件夹", disabled: state.configFolderPath.isEmpty) {
+                guard !state.configFolderPath.isEmpty else { return }
+                NSWorkspace.shared.open(URL(fileURLWithPath: state.configFolderPath))
             }
+            MenuRow("打开数据文件夹") { NSWorkspace.shared.open(KernelManager.mihomoHome) }
+            MenuRow("Dashboard", disabled: !state.isRunning) { NSWorkspace.shared.open(DashboardURL.homepage) }
+            MenuRow("日志...") {
+                openWindow(id: "logs")
+                NSApp.activate(ignoringOtherApps: true)
+            }
+            MenuRow("设置...") {
+                openWindow(id: "settings")
+                NSApp.activate(ignoringOtherApps: true)
+            }
+            .keyboardShortcut(",", modifiers: .command)
+
+            MenuDivider()
+
+            MenuRow("退出") { NSApplication.shared.terminate(nil) }
+                .keyboardShortcut("q", modifiers: .command)
         }
-
-        Button("复制启用 TUN 命令") {
-            copyEnableTunCommand()
-        }
-
-        Divider()
-
-        Button("打开配置文件夹") {
-            let path = state.configFolderPath
-            guard !path.isEmpty else { return }
-            NSWorkspace.shared.open(URL(fileURLWithPath: path))
-        }
-        .disabled(state.configFolderPath.isEmpty)
-
-        Button("打开数据文件夹") {
-            NSWorkspace.shared.open(KernelManager.mihomoHome)
-        }
-
-        Button("Dashboard") {
-            NSWorkspace.shared.open(DashboardURL.homepage)
-        }
-        .disabled(!state.isRunning)
-
-        Button("日志...") {
-            openWindow(id: "logs")
-            NSApp.activate(ignoringOtherApps: true)
-        }
-
-        Button("设置...") {
-            openWindow(id: "settings")
-            NSApp.activate(ignoringOtherApps: true)
-        }
-        .keyboardShortcut(",", modifiers: .command)
-
-        Button("退出") { NSApplication.shared.terminate(nil) }
-            .keyboardShortcut("q", modifiers: .command)
+        .padding(4)
+        .frame(width: 280)
+        .containerBackground(.ultraThinMaterial, for: .window)
     }
 
     // MARK: - Actions
@@ -204,10 +167,9 @@ struct MenuView: View {
 
     func copyProxyAddress() {
         let ports = state.proxyPorts
-        let address = "127.0.0.1:\(ports.http)"
         let pb = NSPasteboard.general
         pb.clearContents()
-        pb.setString(address, forType: .string)
+        pb.setString("127.0.0.1:\(ports.http)", forType: .string)
     }
 
     func revealMihomoBinary() {
@@ -244,14 +206,6 @@ struct MenuView: View {
 
     static let tunRootHint = "TUN 需 root 权限：点下方「复制启用 TUN 命令」执行后，停止再启动 mihomo。"
 
-    func refreshConfigs() {
-        state.configs = ConfigManager.shared.scan(folderPath: state.configFolderPath)
-        if !state.configs.contains(where: { $0.path == state.activeConfigPath }),
-           let first = state.configs.first {
-            state.activeConfigPath = first.path
-        }
-    }
-
     private var proxyPortSummary: String {
         let ports = state.proxyPorts
         if ports.http == ports.socks {
@@ -259,5 +213,90 @@ struct MenuView: View {
         }
         return "HTTP 代理：127.0.0.1:\(ports.http)  SOCKS：\(ports.socks)"
     }
+}
 
+// MARK: - Helper Views
+
+private struct MenuSectionHeader: View {
+    let title: String
+    init(_ title: String) { self.title = title }
+
+    var body: some View {
+        Text(title)
+            .font(.system(size: 11))
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, 20)
+            .padding(.top, 6)
+            .padding(.bottom, 2)
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+private struct MenuLabel: View {
+    let text: String
+    init(_ text: String) { self.text = text }
+
+    var body: some View {
+        Text(text)
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 3)
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+private struct MenuRow: View {
+    let title: String
+    var checkmark: Bool = false
+    var disabled: Bool = false
+    var destructive: Bool = false
+    let action: () -> Void
+
+    @State private var isHovered = false
+
+    init(_ title: String, checkmark: Bool = false, disabled: Bool = false, destructive: Bool = false, action: @escaping () -> Void) {
+        self.title = title
+        self.checkmark = checkmark
+        self.disabled = disabled
+        self.destructive = destructive
+        self.action = action
+    }
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                Image(systemName: "checkmark")
+                    .font(.system(size: 11, weight: .semibold))
+                    .opacity(checkmark ? 1 : 0)
+                    .frame(width: 14)
+                Text(title)
+                    .lineLimit(1)
+                Spacer()
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 3)
+            .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(
+            (isHovered && !disabled) ? Color.white :
+            destructive ? Color.red :
+            Color.primary
+        )
+        .background(
+            RoundedRectangle(cornerRadius: 5)
+                .fill(isHovered && !disabled ? Color.accentColor : Color.clear)
+        )
+        .disabled(disabled)
+        .opacity(disabled ? 0.45 : 1)
+        .onHover { h in
+            withAnimation(.easeInOut(duration: 0.08)) { isHovered = h }
+        }
+    }
+}
+
+private struct MenuDivider: View {
+    var body: some View {
+        Divider().padding(.vertical, 4)
+    }
 }

@@ -21,7 +21,7 @@ struct ProxyHelperApp: App {
         } label: {
             Image(systemName: appState.isRunning ? "p.square.fill" : "p.square")
         }
-        .menuBarExtraStyle(.menu)
+        .menuBarExtraStyle(.window)
 
         Window("设置", id: "settings") {
             SettingsView()
