@@ -1,30 +1,27 @@
 import Foundation
 import Darwin
+import CoreFoundation
 
-/// 测试是否能在本机绑定指定 TCP 端口。
-/// 绑定到 0.0.0.0 以捕获任意接口上的占用（包括 127.0.0.1 或具体网卡 IP）。
+/// 用 connect() 探测本机端口是否有进程在 LISTEN。
+/// 比 bind() 更准确：进程退出后 connect() 立即得到 ECONNREFUSED，
+/// 不受 TIME_WAIT 或内核回收 socket 的短暂窗口影响。
 func isLocalTCPPortInUse(_ port: Int) -> Bool {
     let fd = socket(AF_INET, SOCK_STREAM, 0)
     guard fd >= 0 else { return false }
     defer { close(fd) }
 
-    // SO_REUSEADDR 让探测行为与 mihomo 绑定时一致：
-    // TIME_WAIT 不算占用，只有真正有进程 LISTEN 才返回 true。
-    var reuse: Int32 = 1
-    setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &reuse, socklen_t(MemoryLayout<Int32>.size))
-
     var addr = sockaddr_in()
     addr.sin_len = UInt8(MemoryLayout<sockaddr_in>.size)
     addr.sin_family = sa_family_t(AF_INET)
     addr.sin_port = in_port_t(port).bigEndian
-    addr.sin_addr.s_addr = in_addr_t(INADDR_ANY).bigEndian
+    addr.sin_addr.s_addr = CFSwapInt32HostToBig(INADDR_LOOPBACK)
 
     let result = withUnsafePointer(to: &addr) { ptr -> Int32 in
         ptr.withMemoryRebound(to: sockaddr.self, capacity: 1) { sockPtr in
-            bind(fd, sockPtr, socklen_t(MemoryLayout<sockaddr_in>.size))
+            Darwin.connect(fd, sockPtr, socklen_t(MemoryLayout<sockaddr_in>.size))
         }
     }
-    return result != 0
+    return result == 0
 }
 
 /// 通过 `lsof` 找出监听指定 TCP 端口的进程，找不到时返回 nil。
