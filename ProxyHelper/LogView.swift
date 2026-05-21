@@ -152,7 +152,6 @@ private struct LogRowView: View {
             Text(entry.message)
                 .font(.system(.caption, design: .monospaced))
                 .foregroundStyle(entry.level.textColor)
-                .textSelection(.enabled)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -169,6 +168,7 @@ struct LogView: View {
     @State private var levelFilter: LogLevel? = nil
     @State private var searchText = ""
     @State private var autoScroll = true
+    @State private var scrollPosition = ScrollPosition(idType: LogEntry.ID.self)
 
     private var filteredEntries: [LogEntry] {
         state.logEntries.filter { entry in
@@ -203,22 +203,21 @@ struct LogView: View {
 
             Divider()
 
-            // Log list
-            ScrollViewReader { scrollProxy in
-                ScrollView(.vertical) {
-                    LazyVStack(alignment: .leading, spacing: 0) {
-                        ForEach(filteredEntries) { entry in
-                            LogRowView(entry: entry)
-                        }
-                        Color.clear.frame(height: 1).id("log-end")
+            // Log list — .textSelection 放容器层，避免每行各持一个 AppKit 文本对象
+            ScrollView(.vertical) {
+                LazyVStack(alignment: .leading, spacing: 0) {
+                    ForEach(filteredEntries) { entry in
+                        LogRowView(entry: entry)
                     }
                 }
-                .onChange(of: state.logEntries.count) {
-                    if autoScroll { scrollProxy.scrollTo("log-end") }
-                }
-                .onChange(of: autoScroll) { _, on in
-                    if on { scrollProxy.scrollTo("log-end") }
-                }
+            }
+            .scrollPosition($scrollPosition)
+            .textSelection(.enabled)
+            .onChange(of: filteredEntries.count) {
+                if autoScroll { scrollPosition.scrollTo(edge: .bottom) }
+            }
+            .onChange(of: autoScroll) { _, on in
+                if on { scrollPosition.scrollTo(edge: .bottom) }
             }
 
             Divider()
