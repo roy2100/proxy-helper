@@ -6,6 +6,9 @@
 
 **macOS 菜单栏应用，一键控制 mihomo 内核与系统代理。**
 
+[![CI](https://github.com/roy2100/proxy-helper/actions/workflows/ci.yml/badge.svg)](https://github.com/roy2100/proxy-helper/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/roy2100/proxy-helper/branch/main/graph/badge.svg)](https://codecov.io/gh/roy2100/proxy-helper)
+
 </div>
 
 <p align="center">

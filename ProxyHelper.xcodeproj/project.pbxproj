@@ -109,7 +109,7 @@
 				CAFE000000000000000000B0 /* LogView.swift */,
 				CAFE000000000000000000C0 /* DashboardURL.swift */,
 				CAFE000000000000000000D0 /* NetworkChangeMonitor.swift */,
-					7521A1B2C3D4E5F6A7B80038 /* Assets.xcassets */,
+		7521A1B2C3D4E5F6A7B80038 /* Assets.xcassets */,
 				7521A1B2C3D4E5F6A7B80039 /* ProxyHelper.entitlements */,
 				7521A1B2C3D4E5F6A7B8003A /* Info.plist */,
 			);
