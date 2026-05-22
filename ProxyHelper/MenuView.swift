@@ -5,7 +5,7 @@ struct MenuView: View {
     @Environment(\.openWindow) var openWindow
 
     var body: some View {
-        if state.configFolderPath.isEmpty {
+        if !state.configFolderSet {
             // === 首次使用：未选择配置文件夹 ===
             Section("初始设置") {
                 Text("请选择存放 mihomo .yaml 配置文件的目录")
@@ -152,6 +152,7 @@ struct MenuView: View {
         panel.begin { response in
             guard response == .OK, let path = panel.url?.path(percentEncoded: false) else { return }
             state.configFolderPath = path
+            state.configFolderSet = true
             let configs = ConfigManager.shared.scan(folderPath: path)
             state.configs = configs
             if let first = configs.first {

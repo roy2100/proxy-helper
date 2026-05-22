@@ -10,6 +10,7 @@ final class AppState {
     var systemProxyEnabled: Bool = false
     var errorMessage: String? = nil
     var configs: [ConfigFile] = []
+    var configFolderSet: Bool = !(UserDefaults.standard.string(forKey: "configFolderPath") ?? "").isEmpty
     var logEntries: [LogEntry] = []
     var kernelVersion: String? = nil
 
