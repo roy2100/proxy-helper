@@ -53,7 +53,11 @@ struct MenuView: View {
                     Button("启动") {
                         Task { await startKernel() }
                     }
-                    .disabled(state.activeConfigPath.isEmpty || state.isStarting)
+                    .disabled(
+                        state.activeConfigPath.isEmpty
+                        || !state.configs.contains(where: { $0.path == state.activeConfigPath })
+                        || state.isStarting
+                    )
                 }
             }
 
