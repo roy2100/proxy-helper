@@ -188,3 +188,4 @@ http://host:port/#/setup?hostname=ipordomain&port=9090&secret=123456
 - 切换配置时采用 **`PUT /configs?force=true` 热重载**而非重启内核，因为所有配置都在同一文件夹下，热重载可靠且没有端口释放的竞争。仅当用户在设置里改变配置文件夹（跨目录）时才走重启路径。
 - 崩溃自动重启最多 3 次（`maxRestarts`），仅在非正常退出（`terminationStatus != 0`）时触发。
 - 系统代理端口直接从当前 mihomo 配置读取，避免手动设置与配置文件不一致。
+- **所有阻止启动的信息集中在菜单"状态"区块展示**，不分散到其他区块。pre-flight 原因（未找到配置文件、未选择配置）通过 `AppState.startBlockReason` 计算属性返回，运行时错误写入 `AppState.errorMessage`，两者都渲染在状态区。"配置文件"区块只负责操作（选择文件），不承担提示职责。新增报错场景应遵循同一规则，写入这两个字段之一，而非在其他区块添加 `Text`。
