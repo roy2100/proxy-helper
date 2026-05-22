@@ -46,22 +46,23 @@ AppState（@Observable, @MainActor）
 
 **双向绑定**：需要写入时，在 `body` 顶部声明 `@Bindable var state = state`，再用 `$state.someProperty`。
 
-**`@ObservationIgnored` 属性的陷阱**：`mihomoPath`、`configFolderPath` 等持久化到 `UserDefaults` 的属性标注了 `@ObservationIgnored`，SwiftUI **不会**追踪它们——在 `body` 里读取这些属性不会在它们变更时触发重新渲染。
-
-正确做法：**不要**在视图 `body` 里用 `@ObservationIgnored` 属性驱动列表渲染；应在 `onChange` 里将变更同步到受追踪的属性（如 `state.configs`），视图 body 只读取受追踪属性：
+**UserDefaults 持久化属性必须用存储属性 + `didSet`**，不能用 `@ObservationIgnored` 计算属性。计算属性绕过了 `@Observable` 的追踪机制，SwiftUI 永远不知道它变了，UI 不会刷新。正确范式（参考 `activeConfigPath`、`configFolderPath`）：
 
 ```swift
-// ❌ 错误：configFolderPath 是 @ObservationIgnored，选择文件夹后不会重新渲染
-let configs = ConfigManager.shared.scan(folderPath: state.configFolderPath)
-ForEach(configs) { ... }
+// ✅ 正确：存储属性 + didSet，@Observable 自动追踪，UI 随时响应
+var configFolderPath: String = UserDefaults.standard.string(forKey: "configFolderPath") ?? "" {
+    didSet { UserDefaults.standard.set(configFolderPath, forKey: "configFolderPath") }
+}
 
-// ✅ 正确：state.configs 受 @Observable 追踪，onChange 更新它后视图自动刷新
-ForEach(state.configs) { ... }
-
-.onChange(of: state.configFolderPath) { _, newValue in
-    state.configs = ConfigManager.shared.scan(folderPath: newValue)
+// ❌ 错误：@ObservationIgnored 计算属性，SwiftUI 不追踪，UI 不刷新
+@ObservationIgnored
+var configFolderPath: String {
+    get { UserDefaults.standard.string(forKey: "configFolderPath") ?? "" }
+    set { UserDefaults.standard.set(newValue, forKey: "configFolderPath") }
 }
 ```
+
+新增需要持久化到 UserDefaults 的属性时，一律使用存储属性 + `didSet` 写法。
 
 ### 启动/停止流程
 
