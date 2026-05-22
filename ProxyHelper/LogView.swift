@@ -157,7 +157,7 @@ private struct LogRowView: View {
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 2)
-        .background(entry.level.rowTint)
+        .textSelection(.enabled)
     }
 }
 
@@ -168,7 +168,6 @@ struct LogView: View {
     @State private var levelFilter: LogLevel? = nil
     @State private var searchText = ""
     @State private var autoScroll = true
-    @State private var scrollPosition = ScrollPosition(idType: LogEntry.ID.self)
 
     private var filteredEntries: [LogEntry] {
         state.logEntries.filter { entry in
@@ -203,21 +202,26 @@ struct LogView: View {
 
             Divider()
 
-            // Log list — .textSelection 放容器层，避免每行各持一个 AppKit 文本对象
-            ScrollView(.vertical) {
-                LazyVStack(alignment: .leading, spacing: 0) {
-                    ForEach(filteredEntries) { entry in
-                        LogRowView(entry: entry)
+            // List 底层是 NSTableView，只实例化可见行，窗口隐藏后自动回收。
+            // 每行单独挂 .textSelection，AppKit 文本对象数量与可见行数成正比而非总条数。
+            ScrollViewReader { proxy in
+                List(filteredEntries) { entry in
+                    LogRowView(entry: entry)
+                        .listRowInsets(EdgeInsets())
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(entry.level.rowTint)
+                }
+                .listStyle(.plain)
+                .onChange(of: filteredEntries.count) {
+                    if autoScroll, let last = filteredEntries.last {
+                        proxy.scrollTo(last.id, anchor: .bottom)
                     }
                 }
-            }
-            .scrollPosition($scrollPosition)
-            .textSelection(.enabled)
-            .onChange(of: filteredEntries.count) {
-                if autoScroll { scrollPosition.scrollTo(edge: .bottom) }
-            }
-            .onChange(of: autoScroll) { _, on in
-                if on { scrollPosition.scrollTo(edge: .bottom) }
+                .onChange(of: autoScroll) { _, on in
+                    if on, let last = filteredEntries.last {
+                        proxy.scrollTo(last.id, anchor: .bottom)
+                    }
+                }
             }
 
             Divider()
