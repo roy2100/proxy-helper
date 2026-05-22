@@ -22,10 +22,8 @@ final class AppState {
         didSet { UserDefaults.standard.set(tunEnabled, forKey: "tunEnabled") }
     }
 
-    @ObservationIgnored
-    var mihomoPath: String {
-        get { UserDefaults.standard.string(forKey: "mihomoPath") ?? "" }
-        set { UserDefaults.standard.set(newValue, forKey: "mihomoPath") }
+    var mihomoPath: String = UserDefaults.standard.string(forKey: "mihomoPath") ?? "" {
+        didSet { UserDefaults.standard.set(mihomoPath, forKey: "mihomoPath") }
     }
 
     var configFolderPath: String = UserDefaults.standard.string(forKey: "configFolderPath") ?? "" {
@@ -68,7 +66,13 @@ final class AppState {
     }
 
     init() {
+        refreshConfigs()
+    }
+
+    func refreshConfigs() {
         configs = ConfigManager.shared.scan(folderPath: configFolderPath)
+        guard !configs.contains(where: { $0.path == activeConfigPath }) else { return }
+        activeConfigPath = configs.first?.path ?? ""
     }
 }
 

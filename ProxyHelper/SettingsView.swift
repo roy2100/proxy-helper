@@ -72,19 +72,14 @@ private struct GeneralPane: View {
         .onAppear {
             guard !state.configFolderPath.isEmpty else { return }
             ConfigManager.shared.startWatching(folderPath: state.configFolderPath) {
-                state.configs = ConfigManager.shared.scan(folderPath: state.configFolderPath)
+                state.refreshConfigs()
             }
         }
         .onChange(of: state.configFolderPath) { _, newValue in
-            let configs = ConfigManager.shared.scan(folderPath: newValue)
-            state.configs = configs
-            if !configs.contains(where: { $0.path == state.activeConfigPath }),
-               let first = configs.first {
-                state.activeConfigPath = first.path
-            }
+            state.refreshConfigs()
             guard FileManager.default.fileExists(atPath: newValue) else { return }
             ConfigManager.shared.startWatching(folderPath: newValue) {
-                state.configs = ConfigManager.shared.scan(folderPath: newValue)
+                state.refreshConfigs()
             }
         }
     }

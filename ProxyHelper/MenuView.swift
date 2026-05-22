@@ -152,13 +152,9 @@ struct MenuView: View {
         panel.begin { response in
             guard response == .OK, let path = panel.url?.path(percentEncoded: false) else { return }
             state.configFolderPath = path
-            let configs = ConfigManager.shared.scan(folderPath: path)
-            state.configs = configs
-            if let first = configs.first {
-                state.activeConfigPath = first.path
-            }
+            state.refreshConfigs()
             ConfigManager.shared.startWatching(folderPath: path) {
-                state.configs = ConfigManager.shared.scan(folderPath: path)
+                state.refreshConfigs()
             }
         }
     }
@@ -294,11 +290,7 @@ struct MenuView: View {
     static let tunRootHint = "TUN 需 root 权限：点下方「复制启用 TUN 命令」执行后，停止再启动 mihomo。"
 
     func refreshConfigs() {
-        state.configs = ConfigManager.shared.scan(folderPath: state.configFolderPath)
-        if !state.configs.contains(where: { $0.path == state.activeConfigPath }),
-           let first = state.configs.first {
-            state.activeConfigPath = first.path
-        }
+        state.refreshConfigs()
     }
 
     private var proxyPortSummary: String {

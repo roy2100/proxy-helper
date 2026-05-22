@@ -1,6 +1,20 @@
 import Testing
 import Foundation
+import Observation
 @testable import ProxyHelper
+
+private final class ChangeFlag: @unchecked Sendable {
+    private let lock = NSLock()
+    private var value = false
+
+    func set() {
+        lock.withLock { value = true }
+    }
+
+    var isSet: Bool {
+        lock.withLock { value }
+    }
+}
 
 // MARK: - ConfigManager
 
@@ -342,6 +356,60 @@ import Foundation
         state.activeConfigPath = ""
         #expect(state.proxyPorts.http == 7890)
         #expect(state.proxyPorts.socks == 7891)
+    }
+
+    @Test func mihomoPathChangesInvalidateEffectivePathObservation() async {
+        UserDefaults.standard.removeObject(forKey: "mihomoPath")
+        let state = AppState()
+        let flag = ChangeFlag()
+
+        _ = withObservationTracking {
+            state.effectiveMihomoPath
+        } onChange: {
+            flag.set()
+        }
+
+        state.mihomoPath = "/tmp/custom-mihomo"
+        try? await Task.sleep(for: .milliseconds(10))
+
+        #expect(flag.isSet)
+        #expect(state.effectiveMihomoPath == "/tmp/custom-mihomo")
+        UserDefaults.standard.removeObject(forKey: "mihomoPath")
+    }
+
+    @Test func refreshConfigsSelectsFirstConfigWhenActivePathIsMissing() throws {
+        let dir = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let config = dir.appendingPathComponent("default.yaml")
+        try "port: 8080\n".write(to: config, atomically: true, encoding: .utf8)
+
+        let state = AppState()
+        state.configFolderPath = dir.path
+        state.activeConfigPath = "/tmp/missing.yaml"
+
+        state.refreshConfigs()
+
+        #expect(state.configs.map(\.name) == ["default"])
+        #expect(state.activeConfigPath == state.configs.first?.path)
+    }
+
+    @Test func refreshConfigsClearsActivePathWhenNoConfigsExist() throws {
+        let dir = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let state = AppState()
+        state.configFolderPath = dir.path
+        state.activeConfigPath = "/tmp/missing.yaml"
+
+        state.refreshConfigs()
+
+        #expect(state.configs.isEmpty)
+        #expect(state.activeConfigPath == "")
     }
 }
 
