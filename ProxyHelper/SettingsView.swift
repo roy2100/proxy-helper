@@ -76,7 +76,12 @@ private struct GeneralPane: View {
             }
         }
         .onChange(of: state.configFolderPath) { _, newValue in
-            state.configs = ConfigManager.shared.scan(folderPath: newValue)
+            let configs = ConfigManager.shared.scan(folderPath: newValue)
+            state.configs = configs
+            if !configs.contains(where: { $0.path == state.activeConfigPath }),
+               let first = configs.first {
+                state.activeConfigPath = first.path
+            }
             ConfigManager.shared.startWatching(folderPath: newValue) {
                 state.configs = ConfigManager.shared.scan(folderPath: newValue)
             }

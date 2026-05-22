@@ -5,89 +5,101 @@ struct MenuView: View {
     @Environment(\.openWindow) var openWindow
 
     var body: some View {
-        Section("状态") {
-            Text(state.isStarting ? "启动中..." : state.isStopping ? "停止中..." : state.isRunning ? "运行中" : "已停止")
-
-            if state.isRunning {
-                Button {
-                    copyProxyAddress()
-                } label: {
-                    Text(proxyPortSummary)
+        if state.configFolderPath.isEmpty {
+            // === 首次使用：未选择配置文件夹 ===
+            Section("初始设置") {
+                Text("请选择存放 mihomo .yaml 配置文件的目录")
+                Button("选择配置文件夹…") { pickConfigFolder() }
+                Button("打开设置…") {
+                    openWindow(id: "settings")
+                    NSApp.activate(ignoringOtherApps: true)
                 }
-                if let version = state.kernelVersion {
+            }
+        } else {
+            // === 正常流程 ===
+            Section("状态") {
+                Text(state.isStarting ? "启动中..." : state.isStopping ? "停止中..." : state.isRunning ? "运行中" : "已停止")
+
+                if state.isRunning {
                     Button {
-                        revealMihomoBinary()
+                        copyProxyAddress()
                     } label: {
-                        Text("内核：\(version)")
+                        Text(proxyPortSummary)
+                    }
+                    if let version = state.kernelVersion {
+                        Button {
+                            revealMihomoBinary()
+                        } label: {
+                            Text("内核：\(version)")
+                        }
                     }
                 }
-            }
 
-            if let err = state.errorMessage {
-                Button(role: .destructive) {
-                    openWindow(id: "logs")
-                    NSApp.activate(ignoringOtherApps: true)
-                } label: {
-                    Label(err, systemImage: "exclamationmark.triangle")
-                }
-            }
-
-            if state.isRunning || state.isStopping {
-                Button("停止") {
-                    Task { await stopKernel() }
-                }
-                .disabled(state.isStopping)
-            } else {
-                Button("启动") {
-                    Task { await startKernel() }
-                }
-                .disabled(state.activeConfigPath.isEmpty || state.isStarting)
-            }
-        }
-
-        Section("配置文件") {
-            if state.configs.isEmpty {
-                Text("未找到配置文件")
-                    .foregroundStyle(.secondary)
-            } else {
-                ForEach(state.configs) { config in
-                    Button {
-                        Task { await switchTo(config) }
+                if let err = state.errorMessage {
+                    Button(role: .destructive) {
+                        openWindow(id: "logs")
+                        NSApp.activate(ignoringOtherApps: true)
                     } label: {
-                        if config.path == state.activeConfigPath {
-                            Label(config.name, systemImage: "checkmark")
-                        } else {
-                            Text(config.name)
+                        Label(err, systemImage: "exclamationmark.triangle")
+                    }
+                }
+
+                if state.isRunning || state.isStopping {
+                    Button("停止") {
+                        Task { await stopKernel() }
+                    }
+                    .disabled(state.isStopping)
+                } else {
+                    Button("启动") {
+                        Task { await startKernel() }
+                    }
+                    .disabled(state.activeConfigPath.isEmpty || state.isStarting)
+                }
+            }
+
+            Section("配置文件") {
+                if state.configs.isEmpty {
+                    Text("目录中未找到 .yaml 配置文件")
+                    Button("打开配置文件夹") { openConfigFolder() }
+                } else {
+                    if !state.configs.contains(where: { $0.path == state.activeConfigPath }) {
+                        Text("请点击下方选择配置文件")
+                    }
+                    ForEach(state.configs) { config in
+                        Button {
+                            Task { await switchTo(config) }
+                        } label: {
+                            if config.path == state.activeConfigPath {
+                                Label(config.name, systemImage: "checkmark")
+                            } else {
+                                Text(config.name)
+                            }
                         }
                     }
                 }
             }
-        }
 
-        Divider()
+            Divider()
 
-        Button {
-            Task { await toggleTun() }
-        } label: {
-            if state.tunEnabled {
-                Label("TUN 模式", systemImage: "checkmark")
-            } else {
-                Text("TUN 模式")
+            Button {
+                Task { await toggleTun() }
+            } label: {
+                if state.tunEnabled {
+                    Label("TUN 模式", systemImage: "checkmark")
+                } else {
+                    Text("TUN 模式")
+                }
+            }
+
+            Button("复制启用 TUN 命令") {
+                copyEnableTunCommand()
             }
         }
 
-        Button("复制启用 TUN 命令") {
-            copyEnableTunCommand()
-        }
-
         Divider()
 
-        Button("打开配置文件夹") {
-            let path = state.configFolderPath
-            guard !path.isEmpty else { return }
-            NSWorkspace.shared.open(URL(fileURLWithPath: path))
-        }
-        .disabled(state.configFolderPath.isEmpty)
+        Button("打开配置文件夹") { openConfigFolder() }
+            .disabled(state.configFolderPath.isEmpty)
 
         Button("打开数据文件夹") {
             NSWorkspace.shared.open(KernelManager.mihomoHome)
@@ -119,6 +131,32 @@ struct MenuView: View {
     }
 
     // MARK: - Actions
+
+    func openConfigFolder() {
+        let path = state.configFolderPath
+        guard !path.isEmpty else { return }
+        NSWorkspace.shared.open(URL(fileURLWithPath: path))
+    }
+
+    func pickConfigFolder() {
+        let panel = NSOpenPanel()
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.prompt = "选择文件夹"
+        panel.begin { response in
+            guard response == .OK, let path = panel.url?.path(percentEncoded: false) else { return }
+            state.configFolderPath = path
+            let configs = ConfigManager.shared.scan(folderPath: path)
+            state.configs = configs
+            if let first = configs.first {
+                state.activeConfigPath = first.path
+            }
+            ConfigManager.shared.startWatching(folderPath: path) {
+                state.configs = ConfigManager.shared.scan(folderPath: path)
+            }
+        }
+    }
 
     func switchTo(_ config: ConfigFile) async {
         await ConfigManager.shared.switchConfig(to: config, appState: state)
