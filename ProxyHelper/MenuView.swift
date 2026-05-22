@@ -35,6 +35,11 @@ struct MenuView: View {
                     }
                 }
 
+                if let reason = state.startBlockReason {
+                    Text(reason)
+                        .foregroundStyle(.secondary)
+                }
+
                 if let err = state.errorMessage {
                     Button(role: .destructive) {
                         openWindow(id: "logs")
@@ -63,12 +68,8 @@ struct MenuView: View {
 
             Section("配置文件") {
                 if state.configs.isEmpty {
-                    Text("目录中未找到 .yaml 配置文件")
                     Button("打开配置文件夹") { openConfigFolder() }
                 } else {
-                    if !state.configs.contains(where: { $0.path == state.activeConfigPath }) {
-                        Text("请点击下方选择配置文件")
-                    }
                     ForEach(state.configs) { config in
                         Button {
                             Task { await switchTo(config) }
